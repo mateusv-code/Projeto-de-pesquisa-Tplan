@@ -290,7 +290,9 @@ class ui_MainWindow(object):
             self.linhas = int(self.secao_longitudinal.text())
             self.colunas = int(self.secao_transversal.text())
         except ValueError:
+            QMessageBox.warning(None,'Error', 'Digite apenas números nos campos de seções!')
             print("Digite apenas números nos campos de seções!")
+            return
         """Cria os QLineEdits de acordo com o número de linhas e colunas"""
         # Limpa os campos antigos
         while self.scroll_layout.count():
@@ -338,6 +340,7 @@ class ui_MainWindow(object):
                     cota = float(texto_cota)
                     linha_valores.append(cota)
                 except ValueError:
+                    QMessageBox.warning(None, "Error",f"Erro: O valor '{texto_cota}' não é um número válido. Verifique os campos." )
                     print(f"Erro: O valor '{texto_cota}' não é um número válido. Verifique os campos.")
                     return
             valores_matriz.append(linha_valores)
@@ -383,13 +386,14 @@ class ui_MainWindow(object):
         try:
             self.cota_adotada = float(self.entry_adotada.text())
         except ValueError:
-            QMessageBox.warning(self, "Erro", "Digite um valor válido para a cota adotada.")
+            QMessageBox.warning(None, "Erro", "Digite um valor válido para a cota adotada.")
             return
         
         try:
             dx = float(self.dimensao_X.text())
             dy = float(self.dimensao_Y.text())
         except ValueError:
+            QMessageBox.warning(None, 'Error', 'Digite dimensões válidas.')
             print("Erro: Digite dimensões válidas.")
             return
 
@@ -411,6 +415,7 @@ class ui_MainWindow(object):
                     try:
                         inclinacoes.append(float(s))
                     except ValueError:
+                        QMessageBox.warning(None, "Error", f"Erro: valor de inclinação inválido '{s}'." )
                         print(f"Erro: valor de inclinação inválido '{s}'.")
                         return
         # completa com zeros caso falte (ou trunca se tiver a mais)
