@@ -67,6 +67,7 @@ class ui_MainWindow(object):
                 }
                 QLineEdit {
                     background-color: white; /* Cor branca para os campos de texto */
+                    border:  0.5px solid gray
                 }              
             """)
         self.left_panel.setMaximumWidth(420)
@@ -98,7 +99,7 @@ class ui_MainWindow(object):
                     background-color: white
                 }
                 QLineEdit {
-                    background-color: white             
+                    background-color: white           
                 }
             """)
         self.right_panel.setMinimumWidth(522)
@@ -139,6 +140,9 @@ class ui_MainWindow(object):
         self.dimensoes_layout.addWidget(self.dimensao_Y, 1, 1)
         self.left_vertical_layout.addWidget(self.dimensoes_group, alignment= Qt.AlignCenter)
 
+        self.spacer_item3 = QSpacerItem(20,20, QSizePolicy.Minimum)
+        self.left_vertical_layout.addItem(self.spacer_item3)
+
         # Box Quadriculação
 
         self.quadriculacao_group = QGroupBox("QUADRICULAÇÃO")
@@ -160,7 +164,7 @@ class ui_MainWindow(object):
         self.left_vertical_layout.addWidget(self.gerar_button, alignment= Qt.AlignCenter)
         self.gerar_button.clicked.connect(self.gerar_campos)
 
-        self.spacer_item1 = QSpacerItem(20,40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.spacer_item1 = QSpacerItem(20,100, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.left_vertical_layout.addItem(self.spacer_item1)
 
     def widgets_panel_2(self):
@@ -201,17 +205,20 @@ class ui_MainWindow(object):
         self.center_panel_layout.addWidget(self.calcular_button, 6, 1, alignment=Qt.AlignRight)
     
     def widgets_panel_3(self):
-        self.right_panel_layout = QGridLayout(self.right_panel)
+        self.right_panel_layout = QVBoxLayout(self.right_panel)
         self.right_panel_layout.setContentsMargins(0,10,0,0)
         self.right_panel_layout.setSpacing(5)
 
         self.logo2_label = QLabel()
         self.pixmap2 = QPixmap("gui/img/IMG_ENG_CIV.png").scaledToWidth(170, Qt.SmoothTransformation)
         self.logo2_label.setPixmap(self.pixmap2)
-        self.right_panel_layout.addWidget(self.logo2_label, 0, 2, 1, 1, alignment=Qt.AlignCenter)
+        self.right_panel_layout.addWidget(self.logo2_label, alignment=Qt.AlignCenter)
 
-        self.spacer_item = QSpacerItem(20,40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.right_panel_layout.addItem(self.spacer_item, 1,2)
+        self.spacer_item = QSpacerItem(20,75, QSizePolicy.Minimum)
+        self.right_panel_layout.addItem(self.spacer_item)
+
+        self.spacer_item = QSpacerItem(20,75, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.right_panel_layout.addItem(self.spacer_item)
 
         # "COTA DE PLATAFORMA" GroupBox
         self.cota_group = QGroupBox("COTA DE PLATAFORMA")
@@ -228,9 +235,18 @@ class ui_MainWindow(object):
         self.cota_layout.addWidget(QLabel("Adotada"), 1, 0)
         self.entry_adotada =  QLineEdit()
         self.entry_adotada.setAlignment(Qt.AlignCenter)
-        self.entry_adotada.setStyleSheet('background-color: white')
+        self.entry_adotada.setStyleSheet('border:  0.5px solid gray, background-color: white')
         self.cota_layout.addWidget(self.entry_adotada, 1, 1)  
-        self.right_panel_layout.addWidget(self.cota_group, 2, 2, alignment= Qt.AlignCenter)
+        self.right_panel_layout.addWidget(self.cota_group, alignment= Qt.AlignCenter)
+
+        self.spacer_item = QSpacerItem(20,10, QSizePolicy.Minimum)
+        self.right_panel_layout.addItem(self.spacer_item)
+
+        self.frame_pos_inclinacao = QFrame()
+        self.right_panel_layout.addWidget(self.frame_pos_inclinacao)
+
+        self.layout_pos_inclinação = QGridLayout(self.frame_pos_inclinacao)
+
 
         # "INCLINAÇÕES DE PROJETO (%)" GroupBox
         self.inclinacoes_group = QGroupBox("INCLINAÇÕES DE PROJETO (%)")
@@ -250,7 +266,7 @@ class ui_MainWindow(object):
         self.scroll_area_inclinacao.setStyleSheet("border: 0.5px solid gray")
         
         self.inclinacoes_layout.addWidget(self.scroll_area_inclinacao, 0, 0, 1, 2)
-        self.right_panel_layout.addWidget(self.inclinacoes_group, 3, 2)
+        self.layout_pos_inclinação.addWidget(self.inclinacoes_group, 3, 2)
 
         # "RELATÓRIO" and "RESUMO DE VOLUMES" buttons
         self.importar_button = QPushButton("IMPORTAR .XLSX")
@@ -259,10 +275,13 @@ class ui_MainWindow(object):
         self.relatorio_button = QPushButton('RELATÓRIO')
         self.resumo_button = QPushButton('RESUMO DE VOLUMES')
         self.resumo_button.clicked.connect(self.abrir_janela_resumo_volumes)
-        self.right_panel_layout.addWidget(self.importar_button, 4, 2, alignment=Qt.AlignRight)
-        self.right_panel_layout.addWidget(self.calcular_button, 5, 2, alignment=Qt.AlignCenter)
-        self.right_panel_layout.addWidget(self.relatorio_button, 6, 2, alignment=Qt.AlignRight)
-        self.right_panel_layout.addWidget(self.resumo_button, 7,2, alignment=Qt.AlignRight)
+        self.layout_pos_inclinação.addWidget(self.importar_button, 4, 2, alignment=Qt.AlignRight)
+        self.layout_pos_inclinação.addWidget(self.calcular_button, 5, 2, alignment=Qt.AlignCenter)
+        self.layout_pos_inclinação.addWidget(self.relatorio_button, 6, 2, alignment=Qt.AlignRight)
+        self.layout_pos_inclinação.addWidget(self.resumo_button, 7,2, alignment=Qt.AlignRight)
+
+        self.spacer_item = QSpacerItem(20,75, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.right_panel_layout.addItem(self.spacer_item)
 
         self.segunda_janela = None
 
@@ -318,6 +337,7 @@ class ui_MainWindow(object):
             for j in range(self.colunas):
                 global line_edit
                 line_edit = QLineEdit()
+                line_edit.setAlignment(Qt.AlignCenter)
                 self.scroll_layout.addWidget(line_edit,i,j)
                 #self.line_edit.setStyleSheet('border: 1px solid black')
                 linha_atual.append(line_edit)
