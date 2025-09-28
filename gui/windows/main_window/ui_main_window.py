@@ -70,6 +70,7 @@ class ui_MainWindow(object):
                 }              
             """)
         self.left_panel.setMaximumWidth(420)
+        self.left_panel.setMinimumWidth(420)
 
         # Create central panel
 
@@ -97,7 +98,7 @@ class ui_MainWindow(object):
                     background-color: white
                 }
                 QLineEdit {
-                    background-color: white              
+                    background-color: white             
                 }
             """)
         self.right_panel.setMinimumWidth(522)
@@ -111,17 +112,17 @@ class ui_MainWindow(object):
 
     def widgets_panel_1(self):
 
-        self.main_grid_layout = QGridLayout(self.left_panel)
+        self.left_vertical_layout = QVBoxLayout(self.left_panel)
 
         self.logo1_label = QLabel()
         # To add an image, use QPixmap:
         pixmap1 = QPixmap("gui/img/IMG_IFMA.png").scaledToWidth(150, Qt.SmoothTransformation)
         self.logo1_label.setPixmap(pixmap1)
-        self.main_grid_layout.addWidget(self.logo1_label, 0, 0, 1, 1, alignment=Qt.AlignCenter)
+        self.left_vertical_layout.addWidget(self.logo1_label, alignment=Qt.AlignCenter)
 
         self.spacer_item1 = QSpacerItem(20,40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.main_grid_layout.addItem(self.spacer_item1, 1,2)
-        # Box Dimensoes da quadrícula
+        self.left_vertical_layout.addItem(self.spacer_item1)
+        #Box Dimensoes da quadrícula
 
         self.dimensoes_group = QGroupBox("DIMENSÕES DA QUADRÍCULA")
         self.dimensoes_group.setMaximumHeight(125)
@@ -130,11 +131,13 @@ class ui_MainWindow(object):
         
         self.dimensoes_layout.addWidget(QLabel("Dimensão em X"), 0, 0)
         self.dimensao_X = QLineEdit()
+        self.dimensao_X.setAlignment(Qt.AlignCenter)
         self.dimensoes_layout.addWidget(self.dimensao_X, 0, 1)
         self.dimensoes_layout.addWidget(QLabel("Dimensão em Y"), 1, 0)
         self.dimensao_Y = QLineEdit()
+        self.dimensao_Y.setAlignment(Qt.AlignCenter)
         self.dimensoes_layout.addWidget(self.dimensao_Y, 1, 1)
-        self.main_grid_layout.addWidget(self.dimensoes_group, 2, 0)
+        self.left_vertical_layout.addWidget(self.dimensoes_group, alignment= Qt.AlignCenter)
 
         # Box Quadriculação
 
@@ -144,19 +147,21 @@ class ui_MainWindow(object):
         self.quadriculacao_layout = QGridLayout(self.quadriculacao_group)
         self.quadriculacao_layout.addWidget(QLabel("Nº de Seções Longitudinais"), 0, 0)
         self.secao_longitudinal = QLineEdit()
+        self.secao_longitudinal.setAlignment(Qt.AlignCenter)
         self.quadriculacao_layout.addWidget(self.secao_longitudinal, 0, 1)
         self.quadriculacao_layout.addWidget(QLabel("Nº de Seções Transversais"), 1, 0)
         self.secao_transversal = QLineEdit()
+        self.secao_transversal.setAlignment(Qt.AlignCenter)
         self.quadriculacao_layout.addWidget(self.secao_transversal, 1, 1)
-        self.main_grid_layout.addWidget(self.quadriculacao_group, 3, 0)
+        self.left_vertical_layout.addWidget(self.quadriculacao_group, alignment= Qt.AlignCenter)
 
                 # "GERAR QUADRÍCULAS" Button
         self.gerar_button = QPushButton("GERAR QUADRÍCULAS")
-        self.main_grid_layout.addWidget(self.gerar_button, 4, 0)
+        self.left_vertical_layout.addWidget(self.gerar_button, alignment= Qt.AlignCenter)
         self.gerar_button.clicked.connect(self.gerar_campos)
 
         self.spacer_item1 = QSpacerItem(20,40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.main_grid_layout.addItem(self.spacer_item1, 5,2)
+        self.left_vertical_layout.addItem(self.spacer_item1)
 
     def widgets_panel_2(self):
         self.center_panel_layout = QGridLayout(self.central_panel)
