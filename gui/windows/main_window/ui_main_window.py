@@ -98,9 +98,6 @@ class ui_MainWindow(object):
                 QScrollArea {
                     background-color: white
                 }
-                QLineEdit {
-                    background-color: white           
-                }
             """)
         self.right_panel.setMinimumWidth(522)
         self.right_panel.setMaximumWidth(522)
@@ -192,6 +189,7 @@ class ui_MainWindow(object):
 
         self.scroll_area_cota = QScrollArea()
         self.scroll_area_cota.setWidget(self.scroll_widget)
+        self.scroll_area_cota.setMaximumHeight(260)
         self.scroll_area_cota.setWidgetResizable(True)
         self.scroll_area_cota.setStyleSheet("border: 0.5px solid gray; background-color: white")
 
@@ -229,13 +227,14 @@ class ui_MainWindow(object):
         self.cota_layout = QGridLayout(self.cota_group)
         self.cota_layout.addWidget(QLabel("Calculada"), 0, 0)
         self.label_calculada = QLabel()
-        self.label_calculada.setStyleSheet('background-color: white')
+        self.label_calculada.setAlignment(Qt.AlignCenter)
+        self.label_calculada.setStyleSheet('border: 0.5px solid gray; background-color: white')
         self.cota_layout.addWidget(self.label_calculada, 0, 1)
         
         self.cota_layout.addWidget(QLabel("Adotada"), 1, 0)
         self.entry_adotada =  QLineEdit()
         self.entry_adotada.setAlignment(Qt.AlignCenter)
-        self.entry_adotada.setStyleSheet('border:  0.5px solid gray, background-color: white')
+        self.entry_adotada.setStyleSheet('border: 0.5px solid gray; background-color: white')
         self.cota_layout.addWidget(self.entry_adotada, 1, 1)  
         self.right_panel_layout.addWidget(self.cota_group, alignment= Qt.AlignCenter)
 
@@ -348,6 +347,7 @@ class ui_MainWindow(object):
         self.list_inclinacao = []
         for j in range(self.colunas-1):
             self.line_edit_inclinacao = QLineEdit()
+            self.line_edit_inclinacao.setAlignment(Qt.AlignCenter)
             self.scroll_layout_2.addWidget(self.line_edit_inclinacao,1,j)
             self.list_inclinacao.append(self.line_edit_inclinacao)
 
