@@ -1,5 +1,7 @@
 from qt_core import*
 from gui.windows.segunda_janela import *
+import numpy as np
+from gui.gráficos.graficos import *
 
 class ui_MainWindow(object):
     def setup_ui(self,parent):
@@ -12,6 +14,9 @@ class ui_MainWindow(object):
             parent.setCentralWidget(self.central_frame)
 
             self.lista_de_line_edits_matriz = [] # Crie a lista aqui
+
+            self.table = None
+            self.table_2 = None
 
             self.volume_corte = 0
             self.volume_aterro = 0
@@ -185,7 +190,7 @@ class ui_MainWindow(object):
         self.center_panel_layout.addWidget(self.cota_terreno_label, 2, 1)
 
         self.scroll_widget = QWidget()
-        self.scroll_layout = QGridLayout(self.scroll_widget)
+        self.scroll_layout = QVBoxLayout(self.scroll_widget)
 
         self.scroll_area_cota = QScrollArea()
         self.scroll_area_cota.setWidget(self.scroll_widget)
@@ -212,10 +217,10 @@ class ui_MainWindow(object):
         self.logo2_label.setPixmap(self.pixmap2)
         self.right_panel_layout.addWidget(self.logo2_label, alignment=Qt.AlignCenter)
 
-        self.spacer_item = QSpacerItem(20,75, QSizePolicy.Minimum)
+        self.spacer_item = QSpacerItem(20,55, QSizePolicy.Minimum)
         self.right_panel_layout.addItem(self.spacer_item)
 
-        self.spacer_item = QSpacerItem(20,75, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.spacer_item = QSpacerItem(20,55, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.right_panel_layout.addItem(self.spacer_item)
 
         # "COTA DE PLATAFORMA" GroupBox
@@ -249,20 +254,24 @@ class ui_MainWindow(object):
 
         # "INCLINAÇÕES DE PROJETO (%)" GroupBox
         self.inclinacoes_group = QGroupBox("INCLINAÇÕES DE PROJETO (%)")
-        self.inclinacoes_group.setMaximumHeight(100)
-        self.inclinacoes_group.setMinimumHeight(100)
+        self.inclinacoes_group.setMaximumHeight(120)
+        self.inclinacoes_group.setMinimumHeight(120)
         self.inclinacoes_group.setMinimumWidth(450)
         self.inclinacoes_group.setMaximumWidth(450)
         self.inclinacoes_layout = QGridLayout(self.inclinacoes_group)
 
         self.scroll_widget_2 = QWidget()
-        self.scroll_layout_2 = QGridLayout(self.scroll_widget_2)
+        self.scroll_layout_2 = QVBoxLayout(self.scroll_widget_2)
 
 
         self.scroll_area_inclinacao = QScrollArea()
         self.scroll_area_inclinacao.setWidget(self.scroll_widget_2)
         self.scroll_area_inclinacao.setWidgetResizable(True)
-        self.scroll_area_inclinacao.setStyleSheet("border: 0.5px solid gray")
+        self.scroll_area_inclinacao.setStyleSheet("border: 0.5px solid gray ; background-color: white")
+
+        # ADICIONE OU ALTERE ESTA LINHA:
+        #self.scroll_area_inclinacao.setMinimumHeight(80) # Define uma altura mínima maior
+        #self.scroll_area_inclinacao.setMaximumHeight(80)
         
         self.inclinacoes_layout.addWidget(self.scroll_area_inclinacao, 0, 0, 1, 2)
         self.layout_pos_inclinação.addWidget(self.inclinacoes_group, 3, 2)
@@ -318,76 +327,62 @@ class ui_MainWindow(object):
             return
         """Cria os QLineEdits de acordo com o número de linhas e colunas"""
         # Limpa os campos antigos
-        while self.scroll_layout.count():
-            item = self.scroll_layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
 
-        while self.scroll_layout_2.count():
-            item = self.scroll_layout_2.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
+        # Remove existing tables if they exist
+        if self.table:
+            self.scroll_layout.removeWidget(self.table)
+            self.table.deleteLater()
 
-        # Cria novos QLineEdits
+        # Create new tables
+        self.table = QTableWidget(self.linhas, self.colunas)
+        self.scroll_layout.addWidget(self.table)
+        #self.scroll_layout.insertWidget(3, self.table)
+
+        # Fill tables with empty items to allow input
         for i in range(self.linhas):
-            linha_atual = [] # Cria uma nova lista para cada linha
             for j in range(self.colunas):
-                global line_edit
-                line_edit = QLineEdit()
-                line_edit.setAlignment(Qt.AlignCenter)
-                self.scroll_layout.addWidget(line_edit,i,j)
-                #self.line_edit.setStyleSheet('border: 1px solid black')
-                linha_atual.append(line_edit)
+                self.table.setItem(i, j, QTableWidgetItem("0"))
 
-                
-            self.lista_de_line_edits_matriz.append(linha_atual)
+        # Remove existing tables if they exist
+        if self.table_2:
+            self.scroll_layout_2.removeWidget(self.table_2)
+            self.table_2.deleteLater()
 
-        self.list_inclinacao = []
+        # Create new tables
+        self.table_2 = QTableWidget(1, self.colunas - 1)
+        self.scroll_layout_2.addWidget(self.table_2)
+        #self.scroll_layout_2.insertWidget(3 , self.table_2)
+
+        # Fill tables with empty items to allow input
         for j in range(self.colunas-1):
-            self.line_edit_inclinacao = QLineEdit()
-            self.line_edit_inclinacao.setAlignment(Qt.AlignCenter)
-            self.scroll_layout_2.addWidget(self.line_edit_inclinacao,1,j)
-            self.list_inclinacao.append(self.line_edit_inclinacao)
-
-
+            self.table_2.setItem(0, j, QTableWidgetItem("0"))
 
     def plataforma(self):
-        # --- lê a matriz de cotas da interface ---
-        global valores_matriz
-        valores_matriz = []
-        for i in range(len(self.lista_de_line_edits_matriz)):
-            linha_valores = []
-            for j in range(len(self.lista_de_line_edits_matriz[i])):
-                texto_cota = self.lista_de_line_edits_matriz[i][j].text()
-                try:
-                    cota = float(texto_cota)
-                    linha_valores.append(cota)
-                except ValueError:
-                    QMessageBox.warning(None, "Error",f"Erro: O valor '{texto_cota}' não é um número válido. Verifique os campos." )
-                    print(f"Erro: O valor '{texto_cota}' não é um número válido. Verifique os campos.")
-                    return
-            valores_matriz.append(linha_valores)
 
-        if not valores_matriz:
-            print("A matriz de cotas está vazia. Gere os campos e insira os valores primeiro.")
-            return
+        self.mat_cotas = np.zeros((self.linhas,self.colunas))
+        for i in range(self.linhas):
+            for j in range(self.colunas):
+                item = self.table.item(i,j)
+                if item and item.text():
+                    try:
+                        self.mat_cotas[i,j] = float(item.text())
+                    except ValueError:
+                        QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
+                        print(f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos.")
+                        return
+        print(self.mat_cotas)
 
         # --- calcula a cota de plataforma plana (média ponderada) ---
         soma_cotas_x_pesos = 0.0
         soma_pesos = 0.0
 
-        linhas = len(valores_matriz)
-        colunas = len(valores_matriz[0])
-
-        for i in range(linhas):
-            for j in range(colunas):
-                cota = valores_matriz[i][j]
-                if (i == 0 and j == 0) or (i == 0 and j == colunas - 1) or \
-                (i == linhas - 1 and j == 0) or (i == linhas - 1 and j == colunas - 1):
+        for i in range(self.linhas):
+            for j in range(self.colunas):
+                cota = self.mat_cotas[i,j]
+                if (i == 0 and j == 0) or (i == 0 and j == self.colunas - 1) or \
+                (i == self.linhas - 1 and j == 0) or (i == self.linhas - 1 and j == self.colunas - 1):
                     peso = 1
-                elif i == 0 or i == linhas - 1 or j == 0 or j == colunas - 1:
+                elif i == 0 or i == self.linhas - 1 or j == 0 or j == self.colunas - 1:
                     peso = 2
                 else:
                     peso = 4
@@ -398,15 +393,26 @@ class ui_MainWindow(object):
             print("Erro: A soma dos pesos é zero. Não foi possível calcular a cota de plataforma.")
             return
 
-        cota_plataforma = round(soma_cotas_x_pesos / soma_pesos, 9)
-        self.label_calculada.setText(f'{cota_plataforma:.2f}')
+        self.cota_plataforma = round(soma_cotas_x_pesos / soma_pesos,10)
+        self.label_calculada.setText(f'{self.cota_plataforma:.2f}')
+        print(self.cota_plataforma)
 
-
-        self.entry_adotada.setText(f'{cota_plataforma:.2f}')
+        self.entry_adotada.setText(f'{self.cota_plataforma}')
 
        
     
     def calcular_volumes(self):
+
+        val_inclinacao = np.zeros(self.colunas - 1)
+        for j in range(self.colunas - 1):
+            item = self.table_2.item(0,j)
+            if item and item.text():
+                try:
+                    val_inclinacao[j] = float(item.text())
+                except ValueError:
+                    QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
+                    print(f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos.")
+                    return
         #self.plataforma()
         try:
             self.cota_adotada = float(self.entry_adotada.text())
@@ -422,149 +428,115 @@ class ui_MainWindow(object):
             print("Erro: Digite dimensões válidas.")
             return
 
-        global valores_matriz, cota_plataforma
-        self.linhas = len(valores_matriz)
-        self.colunas = len(valores_matriz[0])
-
-        #colei aqui@@@@@@@@@@@@@@@@
-
-        # --- monta a lista 'inclinacoes' a partir dos QLineEdit (list_inclinacao) ---
-        #espera-se len(inclinacoes) == colunas - 1 (inclinações entre colunas)
-        inclinacoes = []
-        if hasattr(self, 'list_inclinacao') and self.list_inclinacao:
-            for le in self.list_inclinacao:
-                s = le.text().strip()
-                if s == '':
-                    inclinacoes.append(0.0)
-                else:
-                    try:
-                        inclinacoes.append(float(s))
-                    except ValueError:
-                        QMessageBox.warning(None, "Error", f"Erro: valor de inclinação inválido '{s}'." )
-                        print(f"Erro: valor de inclinação inválido '{s}'.")
-                        return
-        # completa com zeros caso falte (ou trunca se tiver a mais)
-        needed = max(0, self.colunas - 1)
-        if len(inclinacoes) < needed:
-            inclinacoes += [0.0] * (needed - len(inclinacoes))
-        elif len(inclinacoes) > needed:
-            inclinacoes = inclinacoes[:needed]
-
         # --- Gera a matriz cotas_plataforma_mista centralizada (igual TPlan) ---
-        self.cotas_plataforma_mista = []
+        self.cotas_plataforma_mista = np.zeros((self.linhas, self.colunas))
 
         # Caso especial: só 1 coluna (nenhuma inclinação entre colunas)
         if self.colunas == 1:
-            for _ in range(self.linhas):
-                self.cotas_plataforma_mista.append([self.cota_adotada])
-            print("Plataforma mista gerada (1 coluna).")
+            self.cotas_plataforma_mista[:] = self.cota_adotada
+            print("Plataforma mista gerada (1 coluna) como NumPy array.")
+            # Removi o return para manter o fluxo, ajuste se necessário no seu métodoforma mista gerada (1 coluna).")
             return
 
         meio = self.colunas // 2
 
-        for i in range(self.linhas):
-            linha_plataforma = [0.0] * self.colunas
-            cota_base = self.cota_adotada
+        cota_base = self.cota_adotada
 
-            if self.colunas % 2 == 0:
-                # par: eixo entre meio-1 e meio (conforme MATLAB)
-                # usamos inclinacoes[meio-1] para definir a meia diferença inicial
-                linha_plataforma[meio - 1] = cota_base - (inclinacoes[meio - 1] / 100.0) * dx * 0.5
-                linha_plataforma[meio] = cota_base + (inclinacoes[meio - 1] / 100.0) * dx * 0.5
+        # Criamos uma única linha de base para os cálculos horizontais 
+        # (já que a lógica parece se repetir para todas as linhas 'i')
+        linha_base = np.zeros(self.colunas)
 
-                # expandir para a esquerda
-                for j in range(meio - 2, -1, -1):
-                    # inclinacoes[j] existe porque j em [0..colunas-2]
-                    linha_plataforma[j] = linha_plataforma[j + 1] - (inclinacoes[j] / 100.0) * dx
+        if self.colunas % 2 == 0:
+            # par: eixo entre meio-1 e meio
+            linha_base[meio - 1] = cota_base - (val_inclinacao[meio - 1] / 100.0) * dx * 0.5
+            linha_base[meio] = cota_base + (val_inclinacao[meio - 1] / 100.0) * dx * 0.5
 
-                # expandir para a direita
-                for j in range(meio + 1, self.colunas):
-                    linha_plataforma[j] = linha_plataforma[j - 1] + (inclinacoes[j - 1] / 100.0) * dx
+            # expandir para a esquerda
+            for j in range(meio - 2, -1, -1):
+                linha_base[j] = linha_base[j + 1] - (val_inclinacao[j] / 100.0) * dx
 
-            else:
-                # ímpar: eixo exatamente no meio
-                linha_plataforma[meio] = cota_base
+            # expandir para a direita
+            for j in range(meio + 1, self.colunas):
+                linha_base[j] = linha_base[j - 1] + (val_inclinacao[j - 1] / 100.0) * dx
 
-                # expandir para a esquerda
-                for j in range(meio - 1, -1, -1):
-                    linha_plataforma[j] = linha_plataforma[j + 1] - (inclinacoes[j] / 100.0) * dx
+        else:
+            # ímpar: eixo exatamente no meio
+            linha_base[meio] = cota_base
 
-                # expandir para a direita
-                for j in range(meio + 1, self.colunas):
-                    linha_plataforma[j] = linha_plataforma[j - 1] + (inclinacoes[j - 1] / 100.0) * dx
+            # expandir para a esquerda
+            for j in range(meio - 1, -1, -1):
+                linha_base[j] = linha_base[j + 1] - (val_inclinacao[j] / 100.0) * dx
 
-            self.cotas_plataforma_mista.append(linha_plataforma)
+            # expandir para a direita
+            for j in range(meio + 1, self.colunas):
+                linha_base[j] = linha_base[j - 1] + (val_inclinacao[j - 1] / 100.0) * dx
 
-        # debug opcional
-        print(f"Gerado cotas_plataforma_mista: linhas={self.linhas}, colunas={self.colunas}, len(inclinacoes)={len(inclinacoes)}")
-        for r in self.cotas_plataforma_mista:
-            print(r)
+        # Aqui está o "pulo do gato" do NumPy: 
+        # Atribuímos a 'linha_base' calculada para TODAS as linhas da matriz de uma vez
+        self.cotas_plataforma_mista[:, :] = linha_base
 
+        print("Matriz NumPy gerada com sucesso.", self.cotas_plataforma_mista)
+        #comecou aqui
+        # 2. Calcular a diferença de alturas (H) para todos os pontos de uma vez
+        # h > 0 significa Corte, h < 0 significa Aterro
+        H = self.mat_cotas - self.cotas_plataforma_mista
 
-        #terminei aqui@@@@@@@@@@@@@@@@@
+        # 3. Preparar os deslocamentos para pegar (j) e (j+1) de forma vetorizada
+        h1 = H[:, :-1]  # Todas as colunas exceto a última
+        h2 = H[:, 1:]   # Todas as colunas exceto a primeira
 
-        self.volumes_de_corte_secoes = []
-        self.volumes_de_aterro_secoes = []
+        # 4. Criar o vetor de fatores (dy para o meio, dy/2 para as bordas)
+        fator = np.full(self.linhas, dy)
+        fator[0] = dy / 2
+        fator[-1] = dy / 2
+        # Ajustamos o fator para o formato da matriz (coluna vertical) para multiplicar corretamente
+        fator = fator[:, np.newaxis] 
 
-        for i in range(self.linhas):
-            volume_corte_secao = 0
-            volume_aterro_secao = 0
+        # 5. Lógica de Cálculo Vetorizada
+        vol_corte_matriz = np.zeros_like(h1)
+        vol_aterro_matriz = np.zeros_like(h1)
+
+        # Criamos uma matriz de fatores com o mesmo formato de h1 para evitar erros de dimensão
+        # Isso repete o fator de cada linha para todas as colunas daquela linha
+        fator_matriz = np.tile(fator, (1, h1.shape[1]))
+
+        # --- Caso A: Todo em Corte (h1 >= 0 e h2 >= 0) ---
+        mask_corte = (h1 >= 0) & (h2 >= 0)
+        vol_corte_matriz[mask_corte] = ((h1[mask_corte] + h2[mask_corte]) / 2) * dx * fator_matriz[mask_corte]
+
+        # --- Caso B: Todo em Aterro (h1 <= 0 e h2 <= 0) ---
+        mask_aterro = (h1 <= 0) & (h2 <= 0)
+        vol_aterro_matriz[mask_aterro] = ((np.abs(h1[mask_aterro]) + np.abs(h2[mask_aterro])) / 2) * dx * fator_matriz[mask_aterro]
+
+        # --- Caso C: Interseção (Misto) ---
+        mask_misto = ~mask_corte & ~mask_aterro
+        if np.any(mask_misto):
+            mh1 = h1[mask_misto]
+            mh2 = h2[mask_misto]
+            m_fator = fator_matriz[mask_misto]
             
-            # Inicialize as listas para as sub-áreas de corte e aterro desta seção AQUI
+            x_intersec = dx * (np.abs(mh1) / (np.abs(mh1) + np.abs(mh2)))
             
+            # Usando np.where para decidir os volumes baseados no sinal de h1
+            vol_corte_matriz[mask_misto] = np.where(mh1 > 0, 
+                                                    (mh1 * x_intersec) / 2 * m_fator, 
+                                                    (mh2 * (dx - x_intersec)) / 2 * m_fator)
+            
+            vol_aterro_matriz[mask_misto] = np.where(mh1 > 0, 
+                                                     (np.abs(mh2) * (dx - x_intersec)) / 2 * m_fator, 
+                                                     (np.abs(mh1) * x_intersec) / 2 * m_fator)
 
-            # Fator de multiplicação (bordas usam metade)
-            if i == 0 or i == self.linhas - 1:
-                fator = dy / 2
-            else:
-                fator = dy
+        # 6. Soma dos volumes por seção (linha)
+        self.volumes_de_corte_secoes = np.sum(vol_corte_matriz, axis=1)
+        self.volumes_de_aterro_secoes = np.sum(vol_aterro_matriz, axis=1)
 
-            for j in range(self.colunas - 1):
-                # garante que a matriz de plataforma mista existe e tem o mesmo tamanho
-                if not hasattr(self, 'cotas_plataforma_mista'):
-                    print("Plataforma mista não calculada. Rode a função 'plataforma()' antes de calcular volumes.")
-                    return
+        print(f'Corte por seção: {self.volumes_de_corte_secoes}')
+        print(f'Aterro por seção: {self.volumes_de_aterro_secoes}')
 
-                # pega a cota de plataforma pontual (cada vértice)
-                plat_h1 = self.cotas_plataforma_mista[i][j]
-                plat_h2 = self.cotas_plataforma_mista[i][j+1]
+       
+        graficos(dx=dx, colunas= self.colunas, cotas_plataforma_mista= self.cotas_plataforma_mista,mat_cotas=self.mat_cotas, cota_adotada=self.cota_adotada)
 
-                h1 = valores_matriz[i][j] - plat_h1
-                h2 = valores_matriz[i][j+1] - plat_h2
-
-
-
-                volume_corte = 0
-                volume_aterro = 0
-
-                if h1 >= 0 and h2 >= 0:
-                    # Todo em corte
-                    volume_corte = ((h1 + h2) / 2) * dx * fator
-
-                elif h1 <= 0 and h2 <= 0:
-                    # Todo em aterro
-                    volume_aterro = ((abs(h1) + abs(h2)) / 2) * dx * fator
-
-                else:
-                    # Houve interseção com a plataforma
-                    x_intersec = dx * (abs(h1) / (abs(h1) + abs(h2)))
-
-                    if h1 > 0:
-                        # ponto inicial em corte
-                        volume_corte = (h1 * x_intersec) / 2 * fator
-                        volume_aterro = (abs(h2) * (dx - x_intersec)) / 2 * fator
-                    else:
-                        # ponto inicial em aterro
-                        volume_aterro = (abs(h1) * x_intersec) / 2 * fator
-                        volume_corte = (h2 * (dx - x_intersec)) / 2 * fator
-
-                volume_corte_secao += volume_corte
-                volume_aterro_secao += volume_aterro
-            self.volumes_de_corte_secoes.append(volume_corte_secao)
-            self.volumes_de_aterro_secoes.append(volume_aterro_secao)
-        
-        print(f'{self.volumes_de_corte_secoes}')
-        print(f'{ self.volumes_de_aterro_secoes}')
+    
 
 
     def abrir_janela_resumo_volumes(self):
