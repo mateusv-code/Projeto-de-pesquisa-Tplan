@@ -3,7 +3,7 @@ from qt_core import *
 import numpy as np
 
 class graficos(QMainWindow):
-    def __init__(self, dx, colunas, cotas_plataforma_mista, mat_cotas, cota_adotada):
+    def __init__(self, dx, dy, colunas, cotas_plataforma_mista, mat_cotas, cota_adotada):
         super().__init__() # Boa prática inicializar a classe pai
         
         # Converte a lista de listas para array NumPy para permitir indexação [i, :]
@@ -12,6 +12,40 @@ class graficos(QMainWindow):
         
         # Número de seções é igual ao número de linhas da matriz
         num_secoes = mat_cotas.shape[0]
+
+        # 1. Definição dos eixos com dx=dy=20
+        x = np.arange(mat_cotas.shape[1]) * dx
+        y = np.arange(mat_cotas.shape[0]) * dy
+        X, Y = np.meshgrid(x, y)
+
+        # 2. Ajuste da Matriz
+        # O Matplotlib plota a primeira linha da matriz no y=0.
+        # Se na sua tabela a primeira linha [1, 2, 3] é o "topo" (y=40),
+        # precisamos inverter a matriz para o gráfico ficar correto.
+        mat_corrigida = np.flipud(mat_cotas) 
+
+        # 3. Gráfico
+        plt.figure(figsize=(7, 6))
+
+        niveis = np.arange(np.min(mat_cotas), np.max(mat_cotas) + 0.5, 0.5)
+
+        # Usamos mat_corrigida para alinhar as cotas com as coordenadas Y
+        curvas = plt.contour(X, Y, mat_corrigida, levels=niveis, cmap='jet', linestyles='dashed')
+
+        plt.clabel(curvas, inline=True, fontsize=10, colors='black', fmt='%1.1f')
+
+        # 4. Estilização final
+        plt.title('CURVAS DE NÍVEL', fontweight='bold')
+        plt.xlabel('TERRENO (X)')
+        plt.ylabel('TERRENO (Y)')
+
+        # Força os limites para 0 a 40
+        plt.xlim(0, x.max())
+        plt.ylim(0, y.max())
+
+        plt.grid(True, which='both', linestyle='-', color='lightgrey', alpha=0.6)
+        plt.gca().set_aspect('equal')
+
 
         for i in range(num_secoes):
             # --- 1. PREPARAÇÃO DOS DADOS DA SEÇÃO ATUAL ---
@@ -50,6 +84,8 @@ class graficos(QMainWindow):
                      max(np.max(terreno_natural), cota_adotada) + margem)
 
             plt.tight_layout()
-            
+
+       
+
         # Exibe todas as janelas de uma vez ao final do loop
         plt.show()

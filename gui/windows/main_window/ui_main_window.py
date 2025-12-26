@@ -2,6 +2,7 @@ from qt_core import*
 from gui.windows.segunda_janela import *
 import numpy as np
 from gui.gráficos.graficos import *
+import pandas as pd
 
 class ui_MainWindow(object):
     def setup_ui(self,parent):
@@ -203,9 +204,10 @@ class ui_MainWindow(object):
         # "PLATAFORMA" and "CALCULAR" buttons
         self.plataforma_button = QPushButton("PLATAFORMA")
         self.plataforma_button.clicked.connect(self.plataforma)
-        self.calcular_button = QPushButton("IMPORTAR .XLSX")
+        self.botao_importar_excel = QPushButton("IMPORTAR .XLSX")
+        self.botao_importar_excel.clicked.connect(self.importar_excel)
         self.center_panel_layout.addWidget(self.plataforma_button, 7, 1, alignment=Qt.AlignCenter)
-        self.center_panel_layout.addWidget(self.calcular_button, 6, 1, alignment=Qt.AlignRight)
+        self.center_panel_layout.addWidget(self.botao_importar_excel, 6, 1, alignment=Qt.AlignRight)
     
     def widgets_panel_3(self):
         self.right_panel_layout = QVBoxLayout(self.right_panel)
@@ -277,13 +279,14 @@ class ui_MainWindow(object):
         self.layout_pos_inclinação.addWidget(self.inclinacoes_group, 3, 2)
 
         # "RELATÓRIO" and "RESUMO DE VOLUMES" buttons
-        self.importar_button = QPushButton("IMPORTAR .XLSX")
+        self.importar_inclinacao_button = QPushButton("IMPORTAR .XLSX")
+        self.importar_inclinacao_button.clicked.connect(self.importar_excel_inclinacao)
         self.calcular_button = QPushButton("CALCULAR")
         self.calcular_button.clicked.connect(self.calcular_volumes)
         self.relatorio_button = QPushButton('RELATÓRIO')
         self.resumo_button = QPushButton('RESUMO DE VOLUMES')
         self.resumo_button.clicked.connect(self.abrir_janela_resumo_volumes)
-        self.layout_pos_inclinação.addWidget(self.importar_button, 4, 2, alignment=Qt.AlignRight)
+        self.layout_pos_inclinação.addWidget(self.importar_inclinacao_button, 4, 2, alignment=Qt.AlignRight)
         self.layout_pos_inclinação.addWidget(self.calcular_button, 5, 2, alignment=Qt.AlignCenter)
         self.layout_pos_inclinação.addWidget(self.relatorio_button, 6, 2, alignment=Qt.AlignRight)
         self.layout_pos_inclinação.addWidget(self.resumo_button, 7,2, alignment=Qt.AlignRight)
@@ -315,47 +318,112 @@ class ui_MainWindow(object):
         self.descricao_layout.addWidget(self.descricao_group, alignment=Qt.AlignRight)
     
     def gerar_campos(self):
-        # Limpe a lista antes de gerar os novos campos
-        self.lista_de_line_edits_matriz.clear()
-
         try:
             self.linhas = int(self.secao_longitudinal.text())
             self.colunas = int(self.secao_transversal.text())
         except ValueError:
-            QMessageBox.warning(None,'Error', 'Digite apenas números nos campos de seções!')
-            print("Digite apenas números nos campos de seções!")
+            QMessageBox.warning(None, 'Error', 'Digite apenas números nos campos de seções!')
             return
-        """Cria os QLineEdits de acordo com o número de linhas e colunas"""
-        # Limpa os campos antigos
 
-        # Remove existing tables if they exist
-        if self.table:
-            self.scroll_layout.removeWidget(self.table)
-            self.table.deleteLater()
+        # --- LÓGICA PARA A TABELA DE COTAS (table 1) ---
+        # Só recria se o tamanho mudou ou se ela ainda não existe
+        if not self.table or self.table.rowCount() != self.linhas or self.table.columnCount() != self.colunas:
+            if self.table:
+                self.scroll_layout.removeWidget(self.table)
+                self.table.deleteLater()
 
-        # Create new tables
-        self.table = QTableWidget(self.linhas, self.colunas)
-        self.scroll_layout.addWidget(self.table)
-        #self.scroll_layout.insertWidget(3, self.table)
+            self.table = QTableWidget(self.linhas, self.colunas)
+            self.scroll_layout.addWidget(self.table)
+            for i in range(self.linhas):
+                for j in range(self.colunas):
+                    self.table.setItem(i, j, QTableWidgetItem("0"))
 
-        # Fill tables with empty items to allow input
-        for i in range(self.linhas):
-            for j in range(self.colunas):
-                self.table.setItem(i, j, QTableWidgetItem("0"))
+        # --- LÓGICA PARA A TABELA DE INCLINAÇÕES (table 2) ---
+        novas_colunas_inc = self.colunas - 1
+        if not self.table_2 or self.table_2.columnCount() != novas_colunas_inc:
+            if self.table_2:
+                self.scroll_layout_2.removeWidget(self.table_2)
+                self.table_2.deleteLater()
 
-        # Remove existing tables if they exist
-        if self.table_2:
-            self.scroll_layout_2.removeWidget(self.table_2)
-            self.table_2.deleteLater()
+            self.table_2 = QTableWidget(1, novas_colunas_inc)
+            self.scroll_layout_2.addWidget(self.table_2)
+            for j in range(novas_colunas_inc):
+                self.table_2.setItem(0, j, QTableWidgetItem("0"))
 
-        # Create new tables
-        self.table_2 = QTableWidget(1, self.colunas - 1)
-        self.scroll_layout_2.addWidget(self.table_2)
-        #self.scroll_layout_2.insertWidget(3 , self.table_2)
+    def importar_excel(self):
+        # 1. Abrir seletor de arquivo
+        caminho_arquivo, _ = QFileDialog.getOpenFileName(
+            None, "Selecionar Planilha de Cotas", "", "Arquivos Excel (*.xlsx *.xls)"
+        )
 
-        # Fill tables with empty items to allow input
-        for j in range(self.colunas-1):
-            self.table_2.setItem(0, j, QTableWidgetItem("0"))
+        if caminho_arquivo:
+            try:
+                # 2. Ler o Excel usando pandas
+                # Considera que a planilha não tem cabeçalho ou o dado começa na célula A1
+                df = pd.read_excel(caminho_arquivo, header=None)
+                
+                # 3. Pegar dimensões do arquivo
+                n_linhas, n_colunas = df.shape
+
+                # 4. Atualizar os campos de texto da interface
+                self.secao_longitudinal.setText(str(n_linhas))
+                self.secao_transversal.setText(str(n_colunas))
+
+                # 5. Gerar a tabela na interface (reutiliza sua função existente)
+                self.gerar_campos()
+
+                # 6. Preencher a QTableWidget com os dados do Excel
+                for i in range(n_linhas):
+                    for j in range(n_colunas):
+                        valor = df.iloc[i, j]
+                        # Verifica se o valor é um número para evitar erros de exibição
+                        valor_str = str(valor) if pd.notnull(valor) else "0"
+                        self.table.setItem(i, j, QTableWidgetItem(valor_str))
+
+                QMessageBox.information(None, "Sucesso", "Dados importados com sucesso!")
+
+            except Exception as e:
+                QMessageBox.critical(None, "Erro", f"Falha ao ler o arquivo: {str(e)}")
+
+    def importar_excel_inclinacao(self):
+        # 1. Abrir seletor de arquivo
+        caminho_arquivo, _ = QFileDialog.getOpenFileName(
+            None, "Selecionar Planilha de Inclinações", "", "Arquivos Excel (*.xlsx *.xls)"
+        )
+
+        if caminho_arquivo:
+            try:
+                # 2. Ler o Excel
+                df = pd.read_excel(caminho_arquivo, header=None)
+                
+                # Converter para uma lista simples (achatar a matriz caso venha como linha ou coluna)
+                dados = df.values.flatten()
+                n_inclinações = len(dados)
+
+                # 3. Validar se o número de inclinações bate com o número de seções transversais - 1
+                # Se o usuário ainda não definiu as seções, o programa assume o valor do Excel
+                if hasattr(self, 'colunas'):
+                    if n_inclinações != (self.colunas - 1):
+                        msg = f"Aviso: O Excel tem {n_inclinações} valores, mas o projeto espera {self.colunas - 1}.\nO projeto será ajustado."
+                        QMessageBox.warning(None, "Ajuste de Projeto", msg)
+                
+                # Atualiza o campo de seções transversais para coincidir (n_inclinações + 1)
+                self.secao_transversal.setText(str(n_inclinações + 1))
+                
+                # 4. Re-gerar campos para garantir que a table_2 exista com o tamanho correto
+                self.gerar_campos()
+
+                # 5. Preencher a table_2 (Inclinações)
+                for j in range(n_inclinações):
+                    valor = dados[j]
+                    valor_str = str(valor) if pd.notnull(valor) else "0"
+                    self.table_2.setItem(0, j, QTableWidgetItem(valor_str))
+
+                QMessageBox.information(None, "Sucesso", "Inclinações importadas com sucesso!")
+
+            except Exception as e:
+                QMessageBox.critical(None, "Erro", f"Falha ao ler o arquivo de inclinações: {str(e)}")
+        pass
 
     def plataforma(self):
 
@@ -534,7 +602,7 @@ class ui_MainWindow(object):
         print(f'Aterro por seção: {self.volumes_de_aterro_secoes}')
 
        
-        graficos(dx=dx, colunas= self.colunas, cotas_plataforma_mista= self.cotas_plataforma_mista,mat_cotas=self.mat_cotas, cota_adotada=self.cota_adotada)
+        graficos(dx=dx, dy=dy, colunas= self.colunas, cotas_plataforma_mista= self.cotas_plataforma_mista,mat_cotas=self.mat_cotas, cota_adotada=self.cota_adotada)
 
     
 
