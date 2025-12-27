@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from qt_core import *
 import numpy as np
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 class graficos(QMainWindow):
     def __init__(self, dx, dy, colunas, cotas_plataforma_mista, mat_cotas, cota_adotada):
@@ -84,6 +85,131 @@ class graficos(QMainWindow):
                      max(np.max(terreno_natural), cota_adotada) + margem)
 
             plt.tight_layout()
+
+        # 1. Preparação dos Dados
+        mat_cotas = np.array(mat_cotas)
+        # x corresponde às colunas, y às linhas
+        x = np.arange(mat_cotas.shape[1]) * dx
+        y = np.arange(mat_cotas.shape[0]) * dy
+        X, Y = np.meshgrid(x, y)
+
+        # 2. Configuração da Figura 3D
+        fig = plt.figure(figsize=(6, 5))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Desenho do Terreno (Superfície semi-transparente e Aramado tracejado)
+        ax.plot_surface(X, Y, mat_cotas, color='lightblue', alpha=0.3, shade=True)
+        ax.plot_wireframe(X, Y, mat_cotas, color='black', linestyle='--', linewidth=0.6)
+
+        # 3. Inserção dos Valores das Cotas (Texto em Vermelho)
+        # mat_cotas.shape[0] é o número de linhas (Y), shape[1] é o de colunas (X)
+        for i in range(mat_cotas.shape[0]):
+            for j in range(mat_cotas.shape[1]):
+                ax.text(X[i, j], Y[i, j], mat_cotas[i, j] + 0.3, f'{mat_cotas[i, j]:.2f}', 
+                        color='red', fontweight='bold', fontsize=10, ha='center', zorder=20)
+
+        # 4. Construção das Faces Laterais (Efeito de Volume Sólido)
+        base_z = 0
+        faces = []
+        
+        # Laterais acompanhando as linhas (Y) - fixando X no início e no fim
+        for i in range(mat_cotas.shape[0] - 1):
+            # Lado Esquerdo (X=0)
+            faces.append([(x[0], y[i], base_z), (x[0], y[i+1], base_z), 
+                          (x[0], y[i+1], mat_cotas[i+1, 0]), (x[0], y[i], mat_cotas[i, 0])])
+            # Lado Direito (X=Max)
+            faces.append([(x[-1], y[i], base_z), (x[-1], y[i+1], base_z), 
+                          (x[-1], y[i+1], mat_cotas[i+1, -1]), (x[-1], y[i], mat_cotas[i, -1])])
+
+        # Laterais acompanhando as colunas (X) - fixando Y no início e no fim
+        for j in range(mat_cotas.shape[1] - 1):
+            # Frente (Y=0)
+            faces.append([(x[j], y[0], base_z), (x[j+1], y[0], base_z), 
+                          (x[j+1], y[0], mat_cotas[0, j+1]), (x[j], y[0], mat_cotas[0, j])])
+            # Fundo (Y=Max)
+            faces.append([(x[j], y[-1], base_z), (x[j+1], y[-1], base_z), 
+                          (x[j+1], y[-1], mat_cotas[-1, j+1]), (x[j], y[-1], mat_cotas[-1, j])])
+
+        # Adiciona a Base Inferior
+        faces.append([(x[0], y[0], base_z), (x[-1], y[0], base_z), 
+                      (x[-1], y[-1], base_z), (x[0], y[-1], base_z)])
+
+        # Renderiza o volume cinza
+        poly3d = Poly3DCollection(faces, facecolors='lightgray', linewidths=0.5, edgecolors='black', alpha=0.3)
+        ax.add_collection3d(poly3d)
+
+        # 5. Ajustes de Eixos e Títulos
+        ax.set_title('TERRENO NATURAL - TPLAN', fontweight='bold', fontsize=12)
+        ax.set_xlabel('COORDENADA X (m)')
+        ax.set_ylabel('COORDENADA Y (m)')
+        ax.set_zlabel('COTA (m)')
+
+        # Ajusta os Ticks para mostrar os limites reais do terreno
+        ax.set_xticks(x)
+        ax.set_yticks(y)
+        ax.set_zlim(0, np.max(mat_cotas) + 1)
+
+        # Perspectiva padrão do MATLAB
+        ax.view_init(elev=25, azim=-135)
+
+        plt.tight_layout()
+
+        # 1. Preparação dos Dados do Projeto
+        # mat_projetada contém as cotas finais após a terraplenagem
+        mat_projetada = np.array(cotas_plataforma_mista)
+
+        # 2. Configuração da Figura 3D
+        fig = plt.figure(figsize=(6, 5))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Desenho da Plataforma Projetada (Cor laranja/avermelhada para diferenciar do natural)
+        ax.plot_surface(X, Y, mat_projetada, color='salmon', alpha=0.4, shade=True)
+        ax.plot_wireframe(X, Y, mat_projetada, color='black', linestyle='--', linewidth=0.6)
+
+        # 3. Inserção dos Valores das Cotas de Projeto
+        for i in range(mat_projetada.shape[0]):
+            for j in range(mat_projetada.shape[1]):
+                ax.text(X[i, j], Y[i, j], mat_projetada[i, j] + 0.3, f'{mat_projetada[i, j]:.2f}', 
+                        color='darkred', fontweight='bold', fontsize=10, ha='center', zorder=20)
+
+        # 4. Construção das Faces Laterais (Volume do Projeto)
+        base_z = 0
+        faces = []
+        
+        # Laterais em X
+        for i in range(mat_projetada.shape[0] - 1):
+            faces.append([(x[0], y[i], base_z), (x[0], y[i+1], base_z), 
+                          (x[0], y[i+1], mat_projetada[i+1, 0]), (x[0], y[i], mat_projetada[i, 0])])
+            faces.append([(x[-1], y[i], base_z), (x[-1], y[i+1], base_z), 
+                          (x[-1], y[i+1], mat_projetada[i+1, -1]), (x[-1], y[i], mat_projetada[i, -1])])
+
+        # Laterais em Y
+        for j in range(mat_projetada.shape[1] - 1):
+            faces.append([(x[j], y[0], base_z), (x[j+1], y[0], base_z), 
+                          (x[j+1], y[0], mat_projetada[0, j+1]), (x[j], y[0], mat_projetada[0, j])])
+            faces.append([(x[j], y[-1], base_z), (x[j+1], y[-1], base_z), 
+                          (x[j+1], y[-1], mat_projetada[-1, j+1]), (x[j], y[-1], mat_projetada[-1, j])])
+
+        # Base
+        faces.append([(x[0], y[0], base_z), (x[-1], y[0], base_z), 
+                      (x[-1], y[-1], base_z), (x[0], y[-1], base_z)])
+
+        poly3d = Poly3DCollection(faces, facecolors='rosybrown', linewidths=0.5, edgecolors='black', alpha=0.3)
+        ax.add_collection3d(poly3d)
+
+        # 5. Ajustes de Eixos e Títulos
+        ax.set_title('TERRENO PROJETADO (PLATAFORMA)', fontweight='bold', fontsize=12)
+        ax.set_xlabel('X (m)')
+        ax.set_ylabel('Y (m)')
+        ax.set_zlabel('COTA (m)')
+
+        ax.set_xticks(x)
+        ax.set_yticks(y)
+        ax.set_zlim(0, np.max(mat_projetada) + 1)
+
+        ax.view_init(elev=25, azim=-135)
+
+        plt.tight_layout()
 
        
 
