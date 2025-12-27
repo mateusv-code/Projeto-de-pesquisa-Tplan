@@ -25,7 +25,7 @@ class graficos(QMainWindow):
         mat_corrigida = np.flipud(mat_cotas) 
 
         # 3. Gráfico
-        plt.figure(figsize=(7, 6))
+        plt.figure(figsize=(6, 5))
 
         niveis = np.arange(np.min(mat_cotas), np.max(mat_cotas) + 0.5, 0.5)
 
@@ -54,7 +54,7 @@ class graficos(QMainWindow):
             cota_plat = np.full(colunas, cota_adotada) # Cria array preenchida com a cota
 
             # --- 2. CONFIGURAÇÃO DO GRÁFICO ---
-            plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(6, 5))
 
             # Plotagem das linhas principais
             plt.plot(distancias, terreno_natural, color='#00FF00', label='TERRENO NATURAL', linewidth=1)

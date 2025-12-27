@@ -284,6 +284,7 @@ class ui_MainWindow(object):
         self.calcular_button = QPushButton("CALCULAR")
         self.calcular_button.clicked.connect(self.calcular_volumes)
         self.relatorio_button = QPushButton('RELATÓRIO')
+        self.relatorio_button.clicked.connect(self.relatorio)
         self.resumo_button = QPushButton('RESUMO DE VOLUMES')
         self.resumo_button.clicked.connect(self.abrir_janela_resumo_volumes)
         self.layout_pos_inclinação.addWidget(self.importar_inclinacao_button, 4, 2, alignment=Qt.AlignRight)
@@ -316,6 +317,9 @@ class ui_MainWindow(object):
         self.bottom_info_label.setStyleSheet('line-height: 10%; font-size: 8pt')
         self.descricao_group_layout.addWidget(self.bottom_info_label)
         self.descricao_layout.addWidget(self.descricao_group, alignment=Qt.AlignRight)
+
+    def relatorio(self):
+        QMessageBox.information(None,'Atenção','Botão RELATÓRIO em manutenção.')
     
     def gerar_campos(self):
         try:
@@ -436,9 +440,7 @@ class ui_MainWindow(object):
                         self.mat_cotas[i,j] = float(item.text())
                     except ValueError:
                         QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
-                        print(f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos.")
                         return
-        print(self.mat_cotas)
 
         # --- calcula a cota de plataforma plana (média ponderada) ---
         soma_cotas_x_pesos = 0.0
@@ -458,12 +460,11 @@ class ui_MainWindow(object):
                 soma_pesos += peso
 
         if soma_pesos == 0:
-            print("Erro: A soma dos pesos é zero. Não foi possível calcular a cota de plataforma.")
+            QMessageBox.warning(None, "Error"," A soma dos pesos é zero. Não foi possível calcular a cota de plataforma." )
             return
 
         self.cota_plataforma = round(soma_cotas_x_pesos / soma_pesos,10)
         self.label_calculada.setText(f'{self.cota_plataforma:.2f}')
-        print(self.cota_plataforma)
 
         self.entry_adotada.setText(f'{self.cota_plataforma}')
 
@@ -479,7 +480,6 @@ class ui_MainWindow(object):
                     val_inclinacao[j] = float(item.text())
                 except ValueError:
                     QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
-                    print(f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos.")
                     return
         #self.plataforma()
         try:
@@ -493,7 +493,6 @@ class ui_MainWindow(object):
             dy = float(self.dimensao_Y.text())
         except ValueError:
             QMessageBox.warning(None, 'Error', 'Digite dimensões válidas.')
-            print("Erro: Digite dimensões válidas.")
             return
 
         # --- Gera a matriz cotas_plataforma_mista centralizada (igual TPlan) ---
@@ -502,7 +501,6 @@ class ui_MainWindow(object):
         # Caso especial: só 1 coluna (nenhuma inclinação entre colunas)
         if self.colunas == 1:
             self.cotas_plataforma_mista[:] = self.cota_adotada
-            print("Plataforma mista gerada (1 coluna) como NumPy array.")
             # Removi o return para manter o fluxo, ajuste se necessário no seu métodoforma mista gerada (1 coluna).")
             return
 
@@ -543,7 +541,6 @@ class ui_MainWindow(object):
         # Atribuímos a 'linha_base' calculada para TODAS as linhas da matriz de uma vez
         self.cotas_plataforma_mista[:, :] = linha_base
 
-        print("Matriz NumPy gerada com sucesso.", self.cotas_plataforma_mista)
         #comecou aqui
         # 2. Calcular a diferença de alturas (H) para todos os pontos de uma vez
         # h > 0 significa Corte, h < 0 significa Aterro
@@ -598,14 +595,11 @@ class ui_MainWindow(object):
         self.volumes_de_corte_secoes = np.sum(vol_corte_matriz, axis=1)
         self.volumes_de_aterro_secoes = np.sum(vol_aterro_matriz, axis=1)
 
-        print(f'Corte por seção: {self.volumes_de_corte_secoes}')
-        print(f'Aterro por seção: {self.volumes_de_aterro_secoes}')
-
        
         graficos(dx=dx, dy=dy, colunas= self.colunas, cotas_plataforma_mista= self.cotas_plataforma_mista,mat_cotas=self.mat_cotas, cota_adotada=self.cota_adotada)
 
-    
-
+        QMessageBox.information(None,'Sucesso', 'Operação concluida.\n' \
+        ' verificar RESUMO DE VOLUMES.')
 
     def abrir_janela_resumo_volumes(self):
         #if self.segunda_janela is None:
