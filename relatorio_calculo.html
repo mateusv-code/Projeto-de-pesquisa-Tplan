@@ -1,0 +1,76 @@
+
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; color: #333; }
+                h1, h2 { color: #2c3e50; border-bottom: 2px solid #2c3e50; }
+                .step { background: #f9f9f9; padding: 15px; border-left: 5px solid #3498db; margin-bottom: 20px; }
+                table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+                th { background-color: #3498db; color: white; }
+                .formula { font-family: 'Courier New', monospace; background: #eee; padding: 5px; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1>Relatório de Memória de Cálculo - Terraplenagem</h1>
+            <p>Gerado por: TPlan - Sistema de Engenharia</p>
+
+            <div class="step">
+                <h2>1. Cota de Plataforma Adotada</h2>
+                <p>Com base nas cotas do terreno natural inseridas, a cota de plataforma calculada pela média ponderada foi: 
+                <b>3.0000</b>.</p>
+                <p>Valor utilizado no projeto: <span class="formula">3.0</span></p>
+            </div>
+
+            <div class="step">
+                <h2>2. Configuração da Malha</h2>
+                <p>Dimensões: ΔX = 3m | ΔY = 3m</p>
+                <p>Seções: 3 Longitudinais e 3 Transversais.</p>
+            </div>
+
+            <div class="step">
+                <h2>3. Detalhamento por Seção (Primeiras 5 Seções)</h2>
+                <table>
+                    <tr>
+                        <th>Seção</th>
+                        <th>Volume de Corte (m³)</th>
+                        <th>Volume de Aterro (m³)</th>
+                        <th>Status</th>
+                    </tr>
+        
+                    <tr>
+                        <td>Seção 1</td>
+                        <td>0.00</td>
+                        <td>9.00</td>
+                        <td>Aterro Dominante</td>
+                    </tr>
+                    <tr>
+                        <td>Seção 2</td>
+                        <td>4.50</td>
+                        <td>4.50</td>
+                        <td>Aterro Dominante</td>
+                    </tr>
+                    <tr>
+                        <td>Seção 3</td>
+                        <td>9.00</td>
+                        <td>0.00</td>
+                        <td>Corte Dominante</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="step">
+                <h2>4. Resumo Total e Metodologia</h2>
+                <p><b>Volume Total de Corte:</b> 13.50 m³</p>
+                <p><b>Volume Total de Aterro:</b> 13.50 m³</p>
+                <p><b>Método de Cálculo:</b> Integração numérica via seções transversais com interpolação linear de passagens de nível (Misto).</p>
+                <p class="formula">V = [ (h1 + h2) / 2 ] * dX * dY_fator</p>
+            </div>
+
+            <p style="text-align: center; font-size: 0.8em; margin-top: 50px;">
+                Fim do Relatório de Memória de Cálculo.
+            </p>
+        </body>
+        </html>
+        

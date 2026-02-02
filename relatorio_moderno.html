@@ -1,0 +1,124 @@
+
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f7f6; color: #333; }
+                .header { text-align: center; padding: 20px; background-color: #2c3e50; color: white; border-radius: 8px; margin-bottom: 30px; }
+                .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 25px; border-top: 5px solid #3498db; }
+                h2 { color: #2980b9; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                .formula { background: #f8f9fa; border: 1px solid #e1e4e8; padding: 15px; border-left: 4px solid #2ecc71; font-family: 'Courier New', monospace; margin: 10px 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+                th { background-color: #3498db; color: white; padding: 12px; text-align: center; }
+                td { border: 1px solid #eee; padding: 10px; text-align: center; }
+                tr:nth-child(even) { background-color: #fcfcfc; }
+                .highlight { font-weight: bold; color: #e67e22; }
+                .footer { text-align: center; font-size: 0.85em; color: #7f8c8d; margin-top: 40px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>MEMORIAL DE CÁLCULO - TERRAPLENAGEM</h1>
+                <p>Sistema TPlan | Engenharia Civil</p>
+            </div>
+
+            <div class="card">
+                <h2>1. Memorial da Cota de Plataforma</h2>
+                <p>A cota de plataforma é calculada através da média ponderada dos pontos da malha:</p>
+                <div class="formula">
+                    PESO 1 (Vértices): 1.00 + 3.00 + 3.00 + 5.00 = <b>12.00</b><br>
+                    PESO 2 (Bordas): 2.00 + 2.00 + 4.00 + 4.00 = <b>12.00</b><br>
+                    PESO 4 (Internos): 3.00 = <b>3.00</b>
+                </div>
+                <p><b>Somatória:</b> (1 × 12.00) + (2 × 12.00) + (4 × 3.00) = <span class="highlight">48.00</span></p>
+                <p><b>Cota de Plataforma Adotada:</b> <span class="highlight">3.000000</span></p>
+            </div>
+
+            <div class="card">
+                <h2>2. Memorial de Cálculo das Áreas</h2>
+                <p>Cálculo detalhado das áreas de cada quadrícula por seção longitudinal:</p>
+                <table>
+                    <tr>
+                        <th>Seção</th>
+                        <th>Cálculo da Área (Interpolação Linear)</th>
+                        <th>Resultado (m²)</th>
+                    </tr>
+        
+                    <tr>
+                        <td>Sec. 1 (A1)</td>
+                        <td>[(1.00 - 3.00) + (2.00 - 3.00)] × (3.0/2)</td>
+                        <td>-4.5000</td>
+                    </tr>
+                    <tr>
+                        <td>Sec. 1 (A2)</td>
+                        <td>[(2.00 - 3.00) + (3.00 - 3.00)] × (3.0/2)</td>
+                        <td>-1.5000</td>
+                    </tr>
+                    <tr>
+                        <td>Sec. 2 (A1)</td>
+                        <td>[(2.00 - 3.00) + (3.00 - 3.00)] × (3.0/2)</td>
+                        <td>-1.5000</td>
+                    </tr>
+                    <tr>
+                        <td>Sec. 2 (A2)</td>
+                        <td>[(3.00 - 3.00) + (4.00 - 3.00)] × (3.0/2)</td>
+                        <td>1.5000</td>
+                    </tr>
+                    <tr>
+                        <td>Sec. 3 (A1)</td>
+                        <td>[(3.00 - 3.00) + (4.00 - 3.00)] × (3.0/2)</td>
+                        <td>1.5000</td>
+                    </tr>
+                    <tr>
+                        <td>Sec. 3 (A2)</td>
+                        <td>[(4.00 - 3.00) + (5.00 - 3.00)] × (3.0/2)</td>
+                        <td>4.5000</td>
+                    </tr>
+                </table>
+                <p><i>* Exibindo as primeiras seções. Para malhas grandes, o cálculo segue o mesmo padrão integrativo.</i></p>
+            </div>
+
+            <div class="card">
+                <h2>3. Resumo Geral de Volumes</h2>
+                <table>
+                    <tr>
+                        <th>Seção Longitudinal</th>
+                        <th>Volume de Corte (m³)</th>
+                        <th>Volume de Aterro (m³)</th>
+                        <th>Status da Seção</th>
+                    </tr>
+        
+                    <tr>
+                        <td><b>Seção 1</b></td>
+                        <td style="color: #c0392b;">0.00</td>
+                        <td style="color: #27ae60;">9.00</td>
+                        <td>ATERRO</td>
+                    </tr>
+                    <tr>
+                        <td><b>Seção 2</b></td>
+                        <td style="color: #c0392b;">4.50</td>
+                        <td style="color: #27ae60;">4.50</td>
+                        <td>EQUILÍBRIO</td>
+                    </tr>
+                    <tr>
+                        <td><b>Seção 3</b></td>
+                        <td style="color: #c0392b;">9.00</td>
+                        <td style="color: #27ae60;">0.00</td>
+                        <td>CORTE</td>
+                    </tr>
+                    <tr style="background-color: #eee; font-weight: bold;">
+                        <td>TOTAIS FINAIS</td>
+                        <td>13.50 m³</td>
+                        <td>13.50 m³</td>
+                        <td>---</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="footer">
+                <p>Relatório gerado automaticamente pelo software TPlan.</p>
+                <p>&copy; 2024 - Memória de Cálculo de Terraplenagem</p>
+            </div>
+        </body>
+        </html>
+        

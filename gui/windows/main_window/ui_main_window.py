@@ -1,8 +1,11 @@
 from qt_core import*
 from gui.windows.segunda_janela import *
-import numpy as np
+import numpy as np 
 from gui.gráficos.graficos import *
 import pandas as pd
+import sys
+import os
+from fpdf import FPDF
 
 class ui_MainWindow(object):
     def setup_ui(self,parent):
@@ -120,7 +123,7 @@ class ui_MainWindow(object):
 
         self.logo1_label = QLabel()
         # To add an image, use QPixmap:
-        pixmap1 = QPixmap("gui/img/IMG_IFMA.png").scaledToWidth(150, Qt.SmoothTransformation)
+        pixmap1 = QPixmap(self.resource_path("gui/img/IMG_IFMA.png")).scaledToWidth(150, Qt.SmoothTransformation)
         self.logo1_label.setPixmap(pixmap1)
         self.left_vertical_layout.addWidget(self.logo1_label, alignment=Qt.AlignCenter)
 
@@ -176,7 +179,7 @@ class ui_MainWindow(object):
         self.center_panel_layout.setSpacing(0)
 
         self.tplan_logo_label = QLabel()
-        self.pixmap_tplan = QPixmap("gui/img/IMG_TPLAN.png").scaledToWidth(450, Qt.SmoothTransformation)
+        self.pixmap_tplan = QPixmap(self.resource_path("gui/img/IMG_TPLAN.png")).scaledToWidth(450, Qt.SmoothTransformation)
         self.tplan_logo_label.setPixmap(self.pixmap_tplan)
         self.center_panel_layout.addWidget(self.tplan_logo_label, 0, 1, 1, 1, alignment=Qt.AlignCenter)
 
@@ -215,7 +218,7 @@ class ui_MainWindow(object):
         self.right_panel_layout.setSpacing(5)
 
         self.logo2_label = QLabel()
-        self.pixmap2 = QPixmap("gui/img/IMG_ENG_CIV.png").scaledToWidth(170, Qt.SmoothTransformation)
+        self.pixmap2 = QPixmap(self.resource_path("gui/img/IMG_ENG_CIV.png")).scaledToWidth(170, Qt.SmoothTransformation)
         self.logo2_label.setPixmap(self.pixmap2)
         self.right_panel_layout.addWidget(self.logo2_label, alignment=Qt.AlignCenter)
 
@@ -297,6 +300,16 @@ class ui_MainWindow(object):
 
         self.segunda_janela = None
 
+    def resource_path(self,relative_path):
+        """ Retorna o caminho absoluto para o recurso, funcionando tanto em dev quanto no PyInstaller """
+        try:
+            # O PyInstaller cria uma pasta temporária e armazena o caminho em _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
+
     def descricao(self):
         
         self.descricao_layout = QHBoxLayout(self.main_bottom_frame)
@@ -319,7 +332,117 @@ class ui_MainWindow(object):
         self.descricao_layout.addWidget(self.descricao_group, alignment=Qt.AlignRight)
 
     def relatorio(self):
-        QMessageBox.information(None,'Atenção','Botão RELATÓRIO em manutenção.')
+        if not hasattr(self, 'mat_cotas') or not hasattr(self, 'volumes_de_corte_secoes'):
+            QMessageBox.warning(None, "Atenção", "Execute o CALCULAR primeiro para gerar os dados.")
+            return
+
+        caminho_pdf = os.path.abspath("relatorio_detalhado.pdf")
+        dx = float(self.dimensao_X.text())
+        dy = float(self.dimensao_Y.text())
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", "B", 16)
+        
+        # Cabeçalho
+        pdf.cell(190, 10, "RELATÓRIO DE MEMÓRIA DE CÁLCULO", ln=True, align="C")
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(190, 5, "Sistema TPlan - Engenharia Civil", ln=True, align="C")
+        pdf.ln(10)
+
+        # --- 1. MEMORIAL DA COTA DE PLATAFORMA ---
+        pdf.set_fill_color(200, 220, 255)
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(190, 8, "1. MEMORIAL DA COTA DE PLATAFORMA", ln=True, fill=True)
+        pdf.ln(2)
+        pdf.set_font("Courier", "", 9)
+
+        # Lógica de separação dos pesos (simplificada para o PDF)
+        txt_p1, txt_p2, txt_p4 = [], [], []
+        s1, s2, s4 = 0, 0, 0
+        for i in range(self.linhas):
+            for j in range(self.colunas):
+                c = self.mat_cotas[i, j]
+                if (i == 0 and j == 0) or (i == 0 and j == self.colunas-1) or \
+                (i == self.linhas-1 and j == 0) or (i == self.linhas-1 and j == self.colunas-1):
+                    txt_p1.append(f"{c:.2f}"); s1 += c
+                elif i == 0 or i == self.linhas-1 or j == 0 or j == self.colunas-1:
+                    txt_p2.append(f"{c:.2f}"); s2 += c
+                else:
+                    txt_p4.append(f"{c:.2f}"); s4 += c
+
+        pdf.multi_cell(190, 5, f"PESO 1 (Vértices): {' + '.join(txt_p1)} = {s1:.2f}")
+        pdf.multi_cell(190, 5, f"PESO 2 (Bordas):   {' + '.join(txt_p2)} = {s2:.2f}")
+        pdf.multi_cell(190, 5, f"PESO 4 (Internos): {' + '.join(txt_p4) if txt_p4 else '0.00'} = {s4:.2f}")
+        
+        pdf.set_font("Arial", "B", 10)
+        somatoria_final = (s1*1 + s2*2 + s4*4)
+        total_pesos = (1*len(txt_p1) + 2*len(txt_p2) + 4*len(txt_p4))
+        pdf.ln(2)
+        pdf.cell(190, 5, f"Somatória Final: {somatoria_final:.2f} / Total Pesos: {total_pesos}", ln=True)
+        pdf.set_text_color(230, 126, 34)
+        pdf.cell(190, 7, f"COTA ADOTADA: {self.cota_adotada:.6f}", ln=True)
+        pdf.set_text_color(0, 0, 0)
+        pdf.ln(5)
+
+        # --- 2. MEMORIAL DE ÁREAS (TABELA) ---
+        pdf.set_font("Arial", "B", 12)
+        pdf.set_fill_color(200, 220, 255)
+        pdf.cell(190, 8, "2. MEMORIAL DE CÁLCULO DAS ÁREAS (m2)", ln=True, fill=True)
+        pdf.ln(2)
+        
+        # Cabeçalho da Tabela
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(30, 7, "Seção", 1, 0, "C")
+        pdf.cell(120, 7, "Fórmula: [(h1 + h2) / 2] * dx", 1, 0, "C")
+        pdf.cell(40, 7, "Resultado", 1, 1, "C")
+        
+        pdf.set_font("Courier", "", 8)
+        # Mostra as primeiras seções para não estourar o PDF
+        for i in range(min(self.linhas, 15)):
+            for j in range(self.colunas - 1):
+                h1 = self.mat_cotas[i, j] - self.cotas_plataforma_mista[i, j]
+                h2 = self.mat_cotas[i, j+1] - self.cotas_plataforma_mista[i, j+1]
+                area = ((h1 + h2) / 2) * dx
+                pdf.cell(30, 6, f"S{i+1}-A{j+1}", 1, 0, "C")
+                pdf.cell(120, 6, f"[({self.mat_cotas[i,j]:.2f}-{self.cotas_plataforma_mista[i,j]:.2f})+({self.mat_cotas[i,j+1]:.2f}-{self.cotas_plataforma_mista[i,j+1]:.2f})] * {dx/2}", 1, 0, "L")
+                pdf.cell(40, 6, f"{area:.4f}", 1, 1, "C")
+
+        pdf.ln(5)
+
+        # --- 3. RESUMO DE VOLUMES ---
+        pdf.set_font("Arial", "B", 12)
+        pdf.set_fill_color(200, 220, 255)
+        pdf.cell(190, 8, "3. RESUMO DE VOLUMES POR SEÇÃO", ln=True, fill=True)
+        pdf.ln(2)
+
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(60, 7, "Seção Longitudinal", 1, 0, "C")
+        pdf.cell(65, 7, "Volume Corte (m3)", 1, 0, "C")
+        pdf.cell(65, 7, "Volume Aterro (m3)", 1, 1, "C")
+
+        pdf.set_font("Arial", "", 9)
+        for i in range(self.linhas):
+            pdf.cell(60, 6, f"Seção {i+1}", 1, 0, "C")
+            pdf.set_text_color(192, 57, 43) # Vermelho para corte
+            pdf.cell(65, 6, f"{self.volumes_de_corte_secoes[i]:.2f}", 1, 0, "C")
+            pdf.set_text_color(39, 174, 96) # Verde para aterro
+            pdf.cell(65, 6, f"{self.volumes_de_aterro_secoes[i]:.2f}", 1, 1, "C")
+            pdf.set_text_color(0, 0, 0)
+
+        # Totais
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "TOTAIS FINAIS", 1, 0, "C", fill=True)
+        pdf.cell(65, 8, f"{np.sum(self.volumes_de_corte_secoes):.2f} m3", 1, 0, "C")
+        pdf.cell(65, 8, f"{np.sum(self.volumes_de_aterro_secoes):.2f} m3", 1, 1, "C")
+
+        # Salvar e Abrir
+        try:
+            pdf.output(caminho_pdf)
+            os.startfile(caminho_pdf) # Comando para abrir no Windows
+        except Exception as e:
+            QMessageBox.critical(None, "Erro", f"Não foi possível gerar o PDF: {str(e)}")
+
     
     def gerar_campos(self):
         try:
@@ -329,7 +452,7 @@ class ui_MainWindow(object):
             QMessageBox.warning(None, 'Error', 'Digite apenas números nos campos de seções!')
             return
 
-        # --- LÓGICA PARA A TABELA DE COTAS (table 1) ---
+
         # Só recria se o tamanho mudou ou se ela ainda não existe
         if not self.table or self.table.rowCount() != self.linhas or self.table.columnCount() != self.colunas:
             if self.table:
@@ -428,45 +551,108 @@ class ui_MainWindow(object):
             except Exception as e:
                 QMessageBox.critical(None, "Erro", f"Falha ao ler o arquivo de inclinações: {str(e)}")
         pass
-
     def plataforma(self):
-
-        self.mat_cotas = np.zeros((self.linhas,self.colunas))
+        # 1. Obter matriz de cotas naturais
+        self.mat_cotas = np.zeros((self.linhas, self.colunas))
         for i in range(self.linhas):
             for j in range(self.colunas):
-                item = self.table.item(i,j)
+                item = self.table.item(i, j)
                 if item and item.text():
-                    try:
-                        self.mat_cotas[i,j] = float(item.text())
-                    except ValueError:
-                        QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
-                        return
+                    self.mat_cotas[i, j] = float(item.text())
 
-        # --- calcula a cota de plataforma plana (média ponderada) ---
-        soma_cotas_x_pesos = 0.0
-        soma_pesos = 0.0
+        dx = float(self.dimensao_X.text())
+        dy = float(self.dimensao_Y.text())
+        
+        # 2. Calcular o Volume do Terreno Natural (V_nat)
+        # Aplicando os pesos: dy/2 nas bordas (i=0 e i=n) e dy no meio
+        pesos_y = np.full(self.linhas, dy)
+        pesos_y[0] = dy / 2
+        pesos_y[-1] = dy / 2
+        
+        # Volume de cada ponto = Cota * Área de influência (dx * peso_y)
+        # Nota: para as colunas das extremidades (j), o dx também deveria ser /2 se 
+        # considerarmos a área total da malha.
+        pesos_x = np.full(self.colunas, dx)
+        pesos_x[0] = dx / 2
+        pesos_x[-1] = dx / 2
+        
+        area_influencia = np.outer(pesos_y, pesos_x)
+        v_natural = np.sum(self.mat_cotas * area_influencia)
+        area_total = np.sum(area_influencia)
 
-        for i in range(self.linhas):
-            for j in range(self.colunas):
-                cota = self.mat_cotas[i,j]
-                if (i == 0 and j == 0) or (i == 0 and j == self.colunas - 1) or \
-                (i == self.linhas - 1 and j == 0) or (i == self.linhas - 1 and j == self.colunas - 1):
-                    peso = 1
-                elif i == 0 or i == self.linhas - 1 or j == 0 or j == self.colunas - 1:
-                    peso = 2
-                else:
-                    peso = 4
-                soma_cotas_x_pesos += cota * peso
-                soma_pesos += peso
+        # 3. Calcular a "Forma" da plataforma assimétrica (Delta H)
+        # Geramos a plataforma com cota base = 0 para ver o volume relativo das inclinações
+        val_inclinacao = np.zeros(self.colunas - 1)
+        for j in range(self.colunas - 1):
+            item = self.table_2.item(0, j)
+            val_inclinacao[j] = float(item.text()) if item else 0
 
-        if soma_pesos == 0:
-            QMessageBox.warning(None, "Error"," A soma dos pesos é zero. Não foi possível calcular a cota de plataforma." )
-            return
+        # Lógica de deslocamento (sua lógica de plataforma centralizada)
+        delta_h = np.zeros(self.colunas)
+        meio = self.colunas // 2
+        
+        if self.colunas % 2 == 0:
+            delta_h[meio - 1] = - (val_inclinacao[meio - 1] / 100.0) * dx * 0.5
+            delta_h[meio] = (val_inclinacao[meio - 1] / 100.0) * dx * 0.5
+            for j in range(meio - 2, -1, -1):
+                delta_h[j] = delta_h[j + 1] - (val_inclinacao[j] / 100.0) * dx
+            for j in range(meio + 1, self.colunas):
+                delta_h[j] = delta_h[j - 1] + (val_inclinacao[j - 1] / 100.0) * dx
+        else:
+            delta_h[meio] = 0 # Cota base 0 no eixo
+            for j in range(meio - 1, -1, -1):
+                delta_h[j] = delta_h[j + 1] - (val_inclinacao[j] / 100.0) * dx
+            for j in range(meio + 1, self.colunas):
+                delta_h[j] = delta_h[j - 1] + (val_inclinacao[j - 1] / 100.0) * dx
 
-        self.cota_plataforma = round(soma_cotas_x_pesos / soma_pesos,10)
-        self.label_calculada.setText(f'{self.cota_plataforma:.2f}')
+        # Volume da "forma" da plataforma (V_forma)
+        v_forma = np.sum(delta_h * np.sum(area_influencia, axis=0))
 
-        self.entry_adotada.setText(f'{self.cota_plataforma}')
+        # 4. A Cota de Equilíbrio (x)
+        # V_nat = (x * Area_total) + V_forma  => x = (V_nat - V_forma) / Area_total
+        cota_equilibrio = (v_natural - v_forma) / area_total
+
+        # Atualizar Interface
+        self.label_calculada.setText(f"{cota_equilibrio:.2f}")
+        self.entry_adotada.setText(f"{cota_equilibrio:.6f}")
+    # def plataforma(self):
+
+    #     self.mat_cotas = np.zeros((self.linhas,self.colunas))
+    #     for i in range(self.linhas):
+    #         for j in range(self.colunas):
+    #             item = self.table.item(i,j)
+    #             if item and item.text():
+    #                 try:
+    #                     self.mat_cotas[i,j] = float(item.text())
+    #                 except ValueError:
+    #                     QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
+    #                     return
+
+    #     # --- calcula a cota de plataforma plana (média ponderada) ---
+    #     soma_cotas_x_pesos = 0.0
+    #     soma_pesos = 0.0
+
+    #     for i in range(self.linhas):
+    #         for j in range(self.colunas):
+    #             cota = self.mat_cotas[i,j]
+    #             if (i == 0 and j == 0) or (i == 0 and j == self.colunas - 1) or \
+    #             (i == self.linhas - 1 and j == 0) or (i == self.linhas - 1 and j == self.colunas - 1):
+    #                 peso = 1
+    #             elif i == 0 or i == self.linhas - 1 or j == 0 or j == self.colunas - 1:
+    #                 peso = 2
+    #             else:
+    #                 peso = 4
+    #             soma_cotas_x_pesos += cota * peso
+    #             soma_pesos += peso
+
+    #     if soma_pesos == 0:
+    #         QMessageBox.warning(None, "Error"," A soma dos pesos é zero. Não foi possível calcular a cota de plataforma." )
+    #         return
+
+    #     self.cota_plataforma = round(soma_cotas_x_pesos / soma_pesos,10)
+    #     self.label_calculada.setText(f'{self.cota_plataforma:.2f}')
+
+    #     self.entry_adotada.setText(f'{self.cota_plataforma}')
 
        
     
@@ -495,13 +681,12 @@ class ui_MainWindow(object):
             QMessageBox.warning(None, 'Error', 'Digite dimensões válidas.')
             return
 
-        # --- Gera a matriz cotas_plataforma_mista centralizada (igual TPlan) ---
+        # --- Gera a matriz cotas_plataforma_mista centralizada ---
         self.cotas_plataforma_mista = np.zeros((self.linhas, self.colunas))
 
         # Caso especial: só 1 coluna (nenhuma inclinação entre colunas)
         if self.colunas == 1:
             self.cotas_plataforma_mista[:] = self.cota_adotada
-            # Removi o return para manter o fluxo, ajuste se necessário no seu métodoforma mista gerada (1 coluna).")
             return
 
         meio = self.colunas // 2
@@ -537,11 +722,9 @@ class ui_MainWindow(object):
             for j in range(meio + 1, self.colunas):
                 linha_base[j] = linha_base[j - 1] + (val_inclinacao[j - 1] / 100.0) * dx
 
-        # Aqui está o "pulo do gato" do NumPy: 
         # Atribuímos a 'linha_base' calculada para TODAS as linhas da matriz de uma vez
         self.cotas_plataforma_mista[:, :] = linha_base
 
-        #comecou aqui
         # 2. Calcular a diferença de alturas (H) para todos os pontos de uma vez
         # h > 0 significa Corte, h < 0 significa Aterro
         H = self.mat_cotas - self.cotas_plataforma_mista

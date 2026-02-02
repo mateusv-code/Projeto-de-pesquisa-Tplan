@@ -1,0 +1,77 @@
+
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Courier New', monospace; white-space: pre; background-color: #fff; padding: 20px; }
+                .divisor { color: black; }
+                h2 { text-align: center; margin: 0; font-size: 18px; }
+                .secao-titulo { font-weight: bold; margin-top: 20px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 0; }
+            </style>
+        </head>
+        <body>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+<h2>RELATÓRIO</h2>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+<div class="secao-titulo">1 MEMORIAL DE CÁLCULO DA COTA DE PLATAFORMA</div>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+
+   #Pesos
+
+      PESO 1 = 1.00 + 3.00 + 3.00 + 5.00 = 12.00 
+      PESO 2 = 2.00 + 2.00 + 4.00 + 4.00 = 12.00 
+      PESO 4 = 3.00 = 3.00 
+
+   #Somatória de Pesos e Quantidades
+
+      SOMATÓRIA DOS PESOS = 1*12.00 + 2*12.00 + 4*3.00 = 48.00
+      QUANTIDADE DE PESOS = 1*4 + 2*4 + 4*1 = 16.00
+
+   #Cota de Plataforma
+
+      COTA DE PLATAFORMA = SOMATÓRIA DOS PESOS/QUANTIDADE DE PESOS = 48.00/16.00 = 3.000000
+      COTA DE PLATAFORMA ADOTADA: 3.000000
+
+<div class="secao-titulo">2 MEMORIAL DE CÁLCULO DAS COTAS DE PROJETO (MISTA)</div>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+      Cota de Projeto da Seção Transversal 1 = 3.000
+      Cota de Projeto da Seção Transversal 2 = 3.000
+      Cota de Projeto da Seção Transversal 3 = 3.000
+
+<div class="secao-titulo">4 MEMORIAL DE CÁLCULO DAS ÁREAS (POR SEÇÃO)</div>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+      #Seção 1
+
+      A1 = [(1.000 - 3.000) + (2.000 - 3.000)] * (3.0/2) = -4.5000
+      A2 = [(2.000 - 3.000) + (3.000 - 3.000)] * (3.0/2) = -1.5000
+
+      #Seção 2
+
+      A1 = [(2.000 - 3.000) + (3.000 - 3.000)] * (3.0/2) = -1.5000
+      A2 = [(3.000 - 3.000) + (4.000 - 3.000)] * (3.0/2) = 1.5000
+
+      #Seção 3
+
+      A1 = [(3.000 - 3.000) + (4.000 - 3.000)] * (3.0/2) = 1.5000
+      A2 = [(4.000 - 3.000) + (5.000 - 3.000)] * (3.0/2) = 4.5000
+
+
+<div class="secao-titulo">5 MEMORIAL DE CÁLCULO DOS VOLUMES</div>
+<div class="divisor">--------------------------------------------------------------------------------------------------------------------------------------------</div>
+      #Seção 1
+
+      Va = 9.0000 (Volume acumulado na seção com dy=1.5)
+      Vc = 0.0000 (Volume acumulado na seção com dy=1.5)
+
+      #Seção 2
+
+      Va = 4.5000 (Volume acumulado na seção com dy=3.0)
+      Vc = 4.5000 (Volume acumulado na seção com dy=3.0)
+
+      #Seção 3
+
+      Va = 0.0000 (Volume acumulado na seção com dy=1.5)
+      Vc = 9.0000 (Volume acumulado na seção com dy=1.5)
+
+</body></html>
