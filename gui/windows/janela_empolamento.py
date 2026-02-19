@@ -1,55 +1,53 @@
-import sys
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QComboBox)
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
 
-class CalculadoraEmpolamento(QMainWindow):
-    def __init__(self):
+class JanelaEmpolamento(QMainWindow):
+    def __init__(self, volume_corte_secoes = []):
         super().__init__()
-
-        # Dados da Tabela 1.1 fornecida
+        self.setWindowTitle('Calculadora de Empolamento Profissional')
+        self.resize(450,400)
+        incon_path = 'gui/img/IMG_TPLAN.png'
+        self.setWindowIcon(QIcon(incon_path))
+        
+        volume_corte = round(sum(volume_corte_secoes),4)
+        
         self.dados_solos = {
-            "Solos argilosos": 40,
-            "Terra comum seca (argilo-siltosos)": 25,
-            "Terra comum úmida": 25,
-            "Solo arenoso seco": 12,
+            'Solos argilosos': 40,
+            'Terra comum seca': 25,
+            'Terra comum úmida': 25,
+            'Solo arenoso seco': 12,
             "Personalizado": 0
         }
 
-        self.setWindowTitle("Calculadora de Empolamento Profissional")
-        self.setFixedSize(450, 400)
+        widget_central = QWidget()
+        self.setCentralWidget(widget_central)
+        self.main_layout_vertical = QVBoxLayout(widget_central)
 
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
+        self.label_title = QLabel('Dimencionamento de Empolamento')
+        self.label_title.setStyleSheet('font_size: 18px; font-weight: bold; color: #2c3e50')
+        self.label_title.setAlignment(Qt.AlignCenter)
+        self.main_layout_vertical.addWidget(self.label_title)
 
-        # Título
-        titulo = QLabel("Dimensionamento de Empolamento")
-        titulo.setStyleSheet("font-size: 18px; font-weight: bold; color: #2c3e50;")
-        titulo.setAlignment(Qt.AlignCenter)
-        layout.addWidget(titulo)
-
-        # --- Seção de Inputs ---
-        # Volume de Corte
-        layout.addWidget(QLabel("Volume no Corte (m³):"))
+        self.main_layout_vertical.addWidget(QLabel('Volume corte(m³): '))
         self.input_v_corte = QLineEdit()
-        self.input_v_corte.setPlaceholderText("Ex: 100")
-        layout.addWidget(self.input_v_corte)
+        self.input_v_corte.setPlaceholderText('Ex: 100 ')
+        self.input_v_corte.setText(f'{volume_corte}')
+        self.main_layout_vertical.addWidget(self.input_v_corte)
 
-        # Tipo de Solo
-        layout.addWidget(QLabel("Tipo de Solo:"))
+        self.main_layout_vertical.addWidget(QLabel('Tipo de Solo'))
         self.combo_solo = QComboBox()
         self.combo_solo.addItems(self.dados_solos.keys())
         self.combo_solo.currentIndexChanged.connect(self.atualizar_estado_campo)
-        layout.addWidget(self.combo_solo)
+        self.main_layout_vertical.addWidget(self.combo_solo)
 
         # Taxa de Empolamento (f%)
-        layout.addWidget(QLabel("Taxa de Empolamento (%):"))
+        self.main_layout_vertical.addWidget(QLabel("Taxa de Empolamento (%):"))
         self.input_taxa = QLineEdit()
         self.input_taxa.setText("40")  # Valor inicial do primeiro item
         self.input_taxa.setReadOnly(True) # Começa travado
         self.input_taxa.setStyleSheet("background-color: #f0f0f0;")
-        layout.addWidget(self.input_taxa)
+        self.main_layout_vertical.addWidget(self.input_taxa)
 
         # --- Ações e Resultados ---
         self.btn_calcular = QPushButton("CALCULAR VOLUME SOLTO")
@@ -65,7 +63,7 @@ class CalculadoraEmpolamento(QMainWindow):
             QPushButton:hover { background-color: #219150; }
         """)
         self.btn_calcular.clicked.connect(self.calcular)
-        layout.addWidget(self.btn_calcular)
+        self.main_layout_vertical.addWidget(self.btn_calcular)
 
         # Resultado
         self.frame_res = QFrame()
@@ -75,7 +73,7 @@ class CalculadoraEmpolamento(QMainWindow):
         self.resultado_label.setAlignment(Qt.AlignCenter)
         self.resultado_label.setStyleSheet("font-size: 16px; color: #2c3e50; font-weight: bold;")
         self.res_layout.addWidget(self.resultado_label)
-        layout.addWidget(self.frame_res)
+        self.main_layout_vertical.addWidget(self.frame_res)
 
     def atualizar_estado_campo(self):
         escolha = self.combo_solo.currentText()
@@ -105,8 +103,4 @@ class CalculadoraEmpolamento(QMainWindow):
             self.resultado_label.setText("Erro: Preencha os valores corretamente")
             self.resultado_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    janela = CalculadoraEmpolamento()
-    janela.show()
-    sys.exit(app.exec())
+

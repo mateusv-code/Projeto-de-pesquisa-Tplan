@@ -1,5 +1,6 @@
 from qt_core import*
 from gui.windows.segunda_janela import *
+from gui.windows.janela_empolamento import *
 import numpy as np 
 from gui.gráficos.graficos import *
 import pandas as pd
@@ -286,14 +287,17 @@ class ui_MainWindow(object):
         self.importar_inclinacao_button.clicked.connect(self.importar_excel_inclinacao)
         self.calcular_button = QPushButton("CALCULAR")
         self.calcular_button.clicked.connect(self.calcular_volumes)
+        self.calculadora_empolamento = QPushButton('CALCULADORA EMPOLAMENTO')
+        self.calculadora_empolamento.clicked.connect(self.abrir_janela_empolamento)
         self.relatorio_button = QPushButton('RELATÓRIO')
         self.relatorio_button.clicked.connect(self.relatorio)
         self.resumo_button = QPushButton('RESUMO DE VOLUMES')
         self.resumo_button.clicked.connect(self.abrir_janela_resumo_volumes)
-        self.layout_pos_inclinação.addWidget(self.importar_inclinacao_button, 4, 2, alignment=Qt.AlignRight)
+        self.layout_pos_inclinação.addWidget(self.importar_inclinacao_button, 5, 2, alignment=Qt.AlignRight)
         self.layout_pos_inclinação.addWidget(self.calcular_button, 5, 2, alignment=Qt.AlignCenter)
         self.layout_pos_inclinação.addWidget(self.relatorio_button, 6, 2, alignment=Qt.AlignRight)
         self.layout_pos_inclinação.addWidget(self.resumo_button, 7,2, alignment=Qt.AlignRight)
+        self.layout_pos_inclinação.addWidget(self.calculadora_empolamento, 8,2, alignment=Qt.AlignRight)
 
         self.spacer_item = QSpacerItem(20,75, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.right_panel_layout.addItem(self.spacer_item)
@@ -558,7 +562,11 @@ class ui_MainWindow(object):
             for j in range(self.colunas):
                 item = self.table.item(i, j)
                 if item and item.text():
-                    self.mat_cotas[i, j] = float(item.text())
+                    try:
+                        self.mat_cotas[i, j] = float(item.text())
+                    except ValueError:
+                        QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
+                        return
 
         dx = float(self.dimensao_X.text())
         dy = float(self.dimensao_Y.text())
@@ -615,49 +623,10 @@ class ui_MainWindow(object):
         # Atualizar Interface
         self.label_calculada.setText(f"{cota_equilibrio:.2f}")
         self.entry_adotada.setText(f"{cota_equilibrio:.6f}")
-    # def plataforma(self):
-
-    #     self.mat_cotas = np.zeros((self.linhas,self.colunas))
-    #     for i in range(self.linhas):
-    #         for j in range(self.colunas):
-    #             item = self.table.item(i,j)
-    #             if item and item.text():
-    #                 try:
-    #                     self.mat_cotas[i,j] = float(item.text())
-    #                 except ValueError:
-    #                     QMessageBox.warning(None, "Error",f"Erro: O valor '{item.text()}' não é um número válido. Verifique os campos." )
-    #                     return
-
-    #     # --- calcula a cota de plataforma plana (média ponderada) ---
-    #     soma_cotas_x_pesos = 0.0
-    #     soma_pesos = 0.0
-
-    #     for i in range(self.linhas):
-    #         for j in range(self.colunas):
-    #             cota = self.mat_cotas[i,j]
-    #             if (i == 0 and j == 0) or (i == 0 and j == self.colunas - 1) or \
-    #             (i == self.linhas - 1 and j == 0) or (i == self.linhas - 1 and j == self.colunas - 1):
-    #                 peso = 1
-    #             elif i == 0 or i == self.linhas - 1 or j == 0 or j == self.colunas - 1:
-    #                 peso = 2
-    #             else:
-    #                 peso = 4
-    #             soma_cotas_x_pesos += cota * peso
-    #             soma_pesos += peso
-
-    #     if soma_pesos == 0:
-    #         QMessageBox.warning(None, "Error"," A soma dos pesos é zero. Não foi possível calcular a cota de plataforma." )
-    #         return
-
-    #     self.cota_plataforma = round(soma_cotas_x_pesos / soma_pesos,10)
-    #     self.label_calculada.setText(f'{self.cota_plataforma:.2f}')
-
-    #     self.entry_adotada.setText(f'{self.cota_plataforma}')
 
        
     
     def calcular_volumes(self):
-
         val_inclinacao = np.zeros(self.colunas - 1)
         for j in range(self.colunas - 1):
             item = self.table_2.item(0,j)
@@ -785,6 +754,20 @@ class ui_MainWindow(object):
         ' verificar RESUMO DE VOLUMES.')
 
     def abrir_janela_resumo_volumes(self):
+        # Primeiro, verificamos se o atributo existe e se tem valor
+        if not hasattr(self, 'volumes_de_corte_secoes') or self.volumes_de_corte_secoes is None:
+            # Se não existir, mostramos o aviso
+            QMessageBox.warning(None, "Aviso", "ainda não é possível prosseguir!")
+            return # Encerra a função aqui para não dar erro na linha de baixo
         #if self.segunda_janela is None:
         self.segunda_janela = SegundaJanela(linhas= self.linhas, volume_aterro_secoes=self.volumes_de_aterro_secoes, volume_corte_secoes=self.volumes_de_corte_secoes)
         self.segunda_janela.show()
+
+    def abrir_janela_empolamento(self):
+        # Primeiro, verificamos se o atributo existe e se tem valor
+        if not hasattr(self, 'volumes_de_corte_secoes') or self.volumes_de_corte_secoes is None:
+            # Se não existir, mostramos o aviso
+            QMessageBox.warning(None, "Aviso", "Por favor, calcule o corte antes de prosseguir!")
+            return # Encerra a função aqui para não dar erro na linha de baixo
+        self.janela_empolamento = JanelaEmpolamento(volume_corte_secoes=self.volumes_de_corte_secoes)
+        self.janela_empolamento.show()
