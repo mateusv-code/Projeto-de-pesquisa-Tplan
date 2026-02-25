@@ -5,7 +5,7 @@ from PySide6.QtGui import *
 class JanelaEmpolamento(QMainWindow):
     def __init__(self, volume_corte_secoes = []):
         super().__init__()
-        self.setWindowTitle('Empolamento & Redução')
+        self.setWindowTitle('Empolamento E Redução')
         self.resize(450,400)
         incon_path = 'gui/img/IMG_TPLAN.png'
         self.setWindowIcon(QIcon(incon_path))
@@ -81,7 +81,7 @@ class JanelaEmpolamento(QMainWindow):
         self.res_layout.addWidget(self.resultado_label)
         self.main_layout_vertical.addWidget(self.frame_res)
 
-        #aqui
+        # Redução
         self.aba2 = QWidget()
         layout = QGridLayout(self.aba2)
 
@@ -170,6 +170,7 @@ class JanelaEmpolamento(QMainWindow):
             
             self.resultado_label.setText(f"Volume Final Solto: {v_solto:.2f} m³")
             self.resultado_label.setStyleSheet("font-size: 16px; color: #27ae60; font-weight: bold;")
+            self.vs.setText(f'{v_solto:.2f}')
         except ValueError:
             self.resultado_label.setText("Erro: Preencha os valores corretamente")
             self.resultado_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
