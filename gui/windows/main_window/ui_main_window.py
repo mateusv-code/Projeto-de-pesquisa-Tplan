@@ -18,7 +18,7 @@ class ui_MainWindow(object):
             self.central_frame = QFrame()
             parent.setCentralWidget(self.central_frame)
 
-            self.lista_de_line_edits_matriz = [] # Crie a lista aqui
+            self.lista_de_line_edits_matriz = [] 
 
             self.table = None
             self.table_2 = None
@@ -287,7 +287,7 @@ class ui_MainWindow(object):
         self.importar_inclinacao_button.clicked.connect(self.importar_excel_inclinacao)
         self.calcular_button = QPushButton("CALCULAR")
         self.calcular_button.clicked.connect(self.calcular_volumes)
-        self.calculadora_empolamento = QPushButton('CALCULADORA EMPOLAMENTO')
+        self.calculadora_empolamento = QPushButton('EMPOLAMENTO & REDUÇÃO')
         self.calculadora_empolamento.clicked.connect(self.abrir_janela_empolamento)
         self.relatorio_button = QPushButton('RELATÓRIO')
         self.relatorio_button.clicked.connect(self.relatorio)
